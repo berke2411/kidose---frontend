@@ -14,8 +14,9 @@ export function calcularDosis(medicamento: Medicamento, peso: number) {
   return { dosis, llegoAlMaximo };
 }
 
-// Muestra un número con hasta 2 decimales y coma decimal (ej: 0.14 → "0,14").
+// Muestra un número con hasta 3 decimales y coma decimal (ej: 0.035 → "0,035").
+// Con 2 decimales una dosis chica como 0,035 mg se mostraría como 0,04 mg.
 export function formatearNumero(numero: number) {
-  const redondeado = Math.round(numero * 100) / 100;
+  const redondeado = Math.round(numero * 1000) / 1000;
   return String(redondeado).replace('.', ',');
 }

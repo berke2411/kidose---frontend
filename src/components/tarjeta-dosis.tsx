@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
+import { BotonInfo } from '@/components/boton-info';
 import { COLORES } from '@/constants/colores';
 import { Medicamento } from '@/data/medicamentos-ejemplo';
 import { calcularDosis, formatearNumero } from '@/utils/calcular-dosis';
@@ -8,15 +9,15 @@ import { calcularDosis, formatearNumero } from '@/utils/calcular-dosis';
 type Props = {
   medicamento: Medicamento;
   peso: number;
+  onMasInfo: () => void; // la pantalla abre la ventana con la información del medicamento
   onSuministrar?: (cantidad: number) => void; // si se pasa, aparece el botón "Suministrar"
   vecesSuministrada?: number; // cuántas veces ya se suministró en esta atención
 };
 
 // Tarjeta con el resultado de un medicamento en la calculadora.
-export function TarjetaDosis({ medicamento, peso, onSuministrar, vecesSuministrada = 0 }: Props) {
+export function TarjetaDosis({ medicamento, peso, onMasInfo, onSuministrar, vecesSuministrada = 0 }: Props) {
   const { dosis, llegoAlMaximo } = calcularDosis(medicamento, peso);
 
-  // Los medicamentos críticos se resaltan en rojo, el resto en azul
   const colorResaltado = medicamento.esCritico ? COLORES.rojoAcento : COLORES.azulPrimario;
 
   return (
@@ -40,6 +41,8 @@ export function TarjetaDosis({ medicamento, peso, onSuministrar, vecesSuministra
           </View>
         )}
       </View>
+
+      <BotonInfo onPress={onMasInfo} />
 
       {onSuministrar && (
         <View style={styles.filaSuministrar}>

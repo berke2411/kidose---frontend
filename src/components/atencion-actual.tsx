@@ -6,6 +6,7 @@ import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 import { formatearNumero } from '@/utils/calcular-dosis';
+import { restarPeso, sumarPeso } from '@/utils/peso';
 
 type Props = {
   onEnviada: () => void; // se llama después de enviar la atención
@@ -14,12 +15,13 @@ type Props = {
 // Pantalla del médico con un paciente escaneado: sus datos y las dosis
 // suministradas en esta atención, con el botón para enviarlas.
 export function AtencionActual({ onEnviada }: Props) {
-  const { pacienteEscaneado, dosisSuministradas, quitarDosis, terminarAtencion } = useSesion();
+  const { pacienteEscaneado, dosisSuministradas, actualizarPeso, quitarDosis, terminarAtencion } =
+    useSesion();
 
   if (pacienteEscaneado === null) return null;
 
   function enviarAtencion() {
-    // Sin base de datos todavía: solo cerramos la atención
+    // Sin backend todavía: solo se cierra la atención
     terminarAtencion();
     onEnviada();
   }
@@ -29,13 +31,28 @@ export function AtencionActual({ onEnviada }: Props) {
       <Encabezado etiqueta="ATENCIÓN ACTUAL" />
 
       <ScrollView contentContainerStyle={styles.contenido}>
-        {/* Datos del paciente */}
         <View style={styles.tarjeta}>
           <Text style={styles.nombre}>{pacienteEscaneado.nombre}</Text>
           <Text style={styles.detalle}>
-            {pacienteEscaneado.edad} · {formatearNumero(pacienteEscaneado.pesoKg)} kg · DNI{' '}
-            {pacienteEscaneado.dni}
+            {pacienteEscaneado.edad} · DNI {pacienteEscaneado.dni}
           </Text>
+
+          <View style={styles.filaPeso}>
+            <Pressable
+              style={styles.botonPeso}
+              onPress={() => actualizarPeso(restarPeso(pacienteEscaneado.pesoKg))}>
+              <Ionicons name="remove" size={22} color={COLORES.azulPrimario} />
+            </Pressable>
+            <View style={styles.valorPeso}>
+              <Text style={styles.numeroPeso}>{formatearNumero(pacienteEscaneado.pesoKg)} kg</Text>
+              <Text style={styles.detalle}>Corregí el peso si cambió</Text>
+            </View>
+            <Pressable
+              style={styles.botonPeso}
+              onPress={() => actualizarPeso(sumarPeso(pacienteEscaneado.pesoKg))}>
+              <Ionicons name="add" size={22} color={COLORES.azulPrimario} />
+            </Pressable>
+          </View>
 
           <View style={styles.filaAlergias}>
             {pacienteEscaneado.alergias.length === 0 && (
@@ -49,7 +66,6 @@ export function AtencionActual({ onEnviada }: Props) {
           </View>
         </View>
 
-        {/* Dosis de esta atención */}
         <Text style={styles.subtitulo}>DOSIS SUMINISTRADAS</Text>
 
         {dosisSuministradas.length === 0 && (
@@ -76,7 +92,6 @@ export function AtencionActual({ onEnviada }: Props) {
         ))}
       </ScrollView>
 
-      {/* Botones fijos abajo */}
       <View style={styles.pie}>
         {dosisSuministradas.length > 0 && <Boton texto="Enviar atención" onPress={enviarAtencion} />}
         <Boton texto="Cancelar atención" variante="secundario" onPress={terminarAtencion} />
@@ -109,6 +124,28 @@ const styles = StyleSheet.create({
   detalle: {
     fontSize: 13,
     color: COLORES.gris,
+  },
+  filaPeso: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  botonPeso: {
+    width: 44,
+    height: 44,
+    borderRadius: 11,
+    backgroundColor: COLORES.azulSuave,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  valorPeso: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  numeroPeso: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORES.texto,
   },
   filaAlergias: {
     flexDirection: 'row',

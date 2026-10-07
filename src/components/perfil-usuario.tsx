@@ -10,10 +10,8 @@ import { useSesion } from '@/context/sesion';
 export function PerfilUsuario() {
   const { usuario, cerrarSesion } = useSesion();
 
-  // Las pantallas que usan este componente solo se ven con sesión iniciada
   if (usuario === null) return null;
 
-  // Datos que se muestran según el tipo de usuario
   const datos =
     usuario.rol === 'medico'
       ? [

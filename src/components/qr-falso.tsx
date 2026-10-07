@@ -39,7 +39,6 @@ export function QrFalso({ semilla }: Props) {
 function celdaEncendida(fila: number, columna: number, semilla: number) {
   const ultima = CELDAS - 7;
 
-  // Esquinas: arriba-izquierda, arriba-derecha y abajo-izquierda
   const enEsquinaSuperior = fila < 7 && (columna < 7 || columna >= ultima);
   const enEsquinaInferior = fila >= ultima && columna < 7;
   if (enEsquinaSuperior || enEsquinaInferior) {
@@ -50,7 +49,6 @@ function celdaEncendida(fila: number, columna: number, semilla: number) {
     return enBorde || enCentro;
   }
 
-  // Separación blanca alrededor de las esquinas
   const cercaDeEsquina =
     (fila < 8 && (columna < 8 || columna >= ultima - 1)) || (fila >= ultima - 1 && columna < 8);
   if (cercaDeEsquina) return false;

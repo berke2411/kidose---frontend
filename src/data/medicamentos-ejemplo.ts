@@ -1,4 +1,4 @@
-// ⚠️ DATOS DE EJEMPLO — SOLO PARA LA MAQUETA (ENTREGA 1)
+// DATOS DE EJEMPLO
 // Estos valores se copiaron del diseño visual para mostrar cómo se ve la
 // calculadora. NO están validados. Los valores reales se cargarán desde la
 // única fuente autorizada: el libro de Medicamentos en Emergencias
@@ -6,6 +6,8 @@
 
 export type Medicamento = {
   nombre: string;
+  principioActivo: string; // nombre del principio activo en CIMA (en minúscula)
+  viaCima: string; // vía de administración tal como figura en CIMA, para elegir la presentación correcta
   via: string; // vía de administración (IV, IM, etc.)
   dosisPorKg: number; // cantidad por cada kg de peso
   dosisMaxima?: number; // tope: nunca se supera (opcional)
@@ -27,6 +29,8 @@ export const CATEGORIAS: Categoria[] = [
     medicamentos: [
       {
         nombre: "Adrenalina 1:10.000",
+        principioActivo: "epinefrina",
+        viaCima: "INTRAVENOSA",
         via: "IV / IO",
         dosisPorKg: 0.01,
         dosisMaxima: 1,
@@ -36,6 +40,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Amiodarona",
+        principioActivo: "amiodarona",
+        viaCima: "INTRAVENOSA",
         via: "IV / IO",
         dosisPorKg: 5,
         dosisMaxima: 300,
@@ -44,6 +50,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Solución fisiológica",
+        principioActivo: "sodio cloruro",
+        viaCima: "INTRAVENOSA",
         via: "BOLO IV / IO",
         dosisPorKg: 20,
         unidad: "ml",
@@ -51,6 +59,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Dextrosa 10%",
+        principioActivo: "glucosa",
+        viaCima: "INTRAVENOSA",
         via: "IV / IO",
         dosisPorKg: 5,
         unidad: "ml",
@@ -64,6 +74,8 @@ export const CATEGORIAS: Categoria[] = [
     medicamentos: [
       {
         nombre: "Ketamina",
+        principioActivo: "ketamina",
+        viaCima: "INTRAVENOSA",
         via: "IV — INDUCCIÓN",
         dosisPorKg: 2,
         unidad: "mg",
@@ -71,6 +83,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Fentanilo",
+        principioActivo: "fentanilo",
+        viaCima: "INTRAVENOSA",
         via: "IV — ANALGESIA",
         dosisPorKg: 2,
         unidad: "mcg",
@@ -78,6 +92,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Rocuronio",
+        principioActivo: "rocuronio",
+        viaCima: "INTRAVENOSA",
         via: "IV — BNM",
         dosisPorKg: 1,
         dosisMaxima: 100,
@@ -86,6 +102,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Succinilcolina",
+        principioActivo: "suxametonio",
+        viaCima: "INTRAVENOSA",
         via: "IV — BNM",
         dosisPorKg: 1.5,
         dosisMaxima: 150,
@@ -101,6 +119,8 @@ export const CATEGORIAS: Categoria[] = [
     medicamentos: [
       {
         nombre: "Midazolam",
+        principioActivo: "midazolam",
+        viaCima: "INTRAVENOSA",
         via: "IV / IO",
         dosisPorKg: 0.1,
         dosisMaxima: 5,
@@ -110,6 +130,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Midazolam intranasal",
+        principioActivo: "midazolam",
+        viaCima: "INTRAMUSCULAR",
         via: "IN / IM",
         dosisPorKg: 0.2,
         dosisMaxima: 10,
@@ -118,6 +140,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Diazepam",
+        principioActivo: "diazepam",
+        viaCima: "RECTAL",
         via: "RECTAL",
         dosisPorKg: 0.5,
         dosisMaxima: 10,
@@ -126,6 +150,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Levetiracetam",
+        principioActivo: "levetiracetam",
+        viaCima: "INTRAVENOSA",
         via: "IV — CARGA",
         dosisPorKg: 40,
         dosisMaxima: 3000,
@@ -140,6 +166,8 @@ export const CATEGORIAS: Categoria[] = [
     medicamentos: [
       {
         nombre: "Metilprednisolona",
+        principioActivo: "metilprednisolona",
+        viaCima: "INTRAVENOSA",
         via: "IV / VO",
         dosisPorKg: 2,
         dosisMaxima: 60,
@@ -148,6 +176,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Sulfato de magnesio",
+        principioActivo: "magnesio sulfato",
+        viaCima: "INTRAVENOSA",
         via: "IV — 20 min",
         dosisPorKg: 40,
         dosisMaxima: 2000,
@@ -157,6 +187,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Adrenalina",
+        principioActivo: "epinefrina",
+        viaCima: "INTRAMUSCULAR",
         via: "IM",
         dosisPorKg: 0.01,
         dosisMaxima: 0.5,
@@ -172,6 +204,8 @@ export const CATEGORIAS: Categoria[] = [
     medicamentos: [
       {
         nombre: "Adrenalina 1:1.000",
+        principioActivo: "epinefrina",
+        viaCima: "INTRAMUSCULAR",
         via: "IM",
         dosisPorKg: 0.01,
         dosisMaxima: 0.5,
@@ -181,6 +215,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Solución fisiológica",
+        principioActivo: "sodio cloruro",
+        viaCima: "INTRAVENOSA",
         via: "BOLO IV",
         dosisPorKg: 20,
         unidad: "ml",
@@ -188,6 +224,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Difenhidramina",
+        principioActivo: "difenhidramina",
+        viaCima: "INTRAVENOSA",
         via: "IV / IM",
         dosisPorKg: 1,
         dosisMaxima: 50,
@@ -196,6 +234,8 @@ export const CATEGORIAS: Categoria[] = [
       },
       {
         nombre: "Hidrocortisona",
+        principioActivo: "hidrocortisona",
+        viaCima: "INTRAVENOSA",
         via: "IV",
         dosisPorKg: 5,
         dosisMaxima: 200,
@@ -205,6 +245,15 @@ export const CATEGORIAS: Categoria[] = [
     ],
   },
 ];
+
+// Busca un medicamento por su nombre (el historial guarda solo el nombre)
+export function buscarMedicamento(nombre: string) {
+  for (const categoria of CATEGORIAS) {
+    const encontrado = categoria.medicamentos.find((medicamento) => medicamento.nombre === nombre);
+    if (encontrado) return encontrado;
+  }
+  return null;
+}
 
 // Accesos rápidos de peso aproximado por edad (también de ejemplo).
 export const PESOS_POR_EDAD = [

@@ -16,13 +16,11 @@ type Props = {
 // Provincia + localidad + calle y altura, verificadas con la API Georef.
 // Solo avisa hacia afuera cuando la dirección está confirmada.
 export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
-  // --- Provincia (lista que se carga al abrir la pantalla) ---
   const [provincias, setProvincias] = useState<OpcionGeoref[]>([]);
   const [falloProvincias, setFalloProvincias] = useState(false);
   const [provincia, setProvincia] = useState<OpcionGeoref | null>(null);
   const [listaAbierta, setListaAbierta] = useState(false);
 
-  // --- Localidad (se escribe y se elige de las sugerencias) ---
   const [localidadTexto, setLocalidadTexto] = useState('');
   const [localidad, setLocalidad] = useState<OpcionGeoref | null>(null);
   const [sugerencias, setSugerencias] = useState<{
@@ -31,7 +29,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
     fallo: boolean;
   } | null>(null);
 
-  // --- Calle y altura (se verifica sola) ---
   const [direccionTexto, setDireccionTexto] = useState('');
   const [consulta, setConsulta] = useState<{
     clave: string;
@@ -75,7 +72,7 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
     setLocalidadTexto(opcion.nombre);
   }
 
-  // --- Búsqueda de localidades (espera 400 ms sin escribir antes de consultar) ---
+  // Se busca 400 ms después de la última tecla
   const busquedaLocalidad = localidadTexto.trim();
   // Georef solo encuentra localidades con 4 letras o más
   const debeBuscarLocalidades = provincia !== null && localidad === null && busquedaLocalidad.length >= 4;
@@ -100,13 +97,13 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
       cancelado = true;
       clearTimeout(espera);
     };
-  }, [claveLocalidades, debeBuscarLocalidades]);
+  }, [provincia, busquedaLocalidad, claveLocalidades, debeBuscarLocalidades]);
 
   const sugerenciasActuales =
     debeBuscarLocalidades && sugerencias?.clave === claveLocalidades ? sugerencias : null;
   const buscandoLocalidades = debeBuscarLocalidades && sugerenciasActuales === null;
 
-  // --- Verificación de la dirección (espera 600 ms sin escribir) ---
+  // Se verifica 600 ms después de la última tecla
   const direccionLimpia = direccionTexto.trim();
   const errorFormato = validarDireccion(direccionLimpia);
   const puedeVerificar = provincia !== null && localidad !== null && errorFormato === null;
@@ -130,18 +127,17 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
       cancelado = true;
       clearTimeout(espera);
     };
-  }, [claveDireccion, puedeVerificar]);
+  }, [provincia, localidad, direccionLimpia, claveDireccion, puedeVerificar]);
 
   const consultaActual = puedeVerificar && consulta?.clave === claveDireccion ? consulta : null;
   const verificando = puedeVerificar && consultaActual === null;
   const verificada = consultaActual?.direccion ?? null;
 
-  // Le avisamos a la pantalla de registro cuando la dirección queda confirmada (o deja de estarlo)
+  // Avisa a la pantalla de registro cuando la dirección queda confirmada (o deja de estarlo)
   useEffect(() => {
     onCambio(verificada);
   }, [verificada, onCambio]);
 
-  // --- Mensajes ---
   const errorProvincia = mostrarErrores && provincia === null ? 'Elegí tu provincia.' : undefined;
 
   let errorLocalidad: string | undefined;
@@ -173,7 +169,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
 
   return (
     <View style={styles.contenedor}>
-      {/* Provincia */}
       <View style={styles.grupo}>
         <Text style={styles.etiqueta}>PROVINCIA</Text>
         <Pressable
@@ -220,7 +215,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
         {errorProvincia && <Text style={styles.error}>{errorProvincia}</Text>}
       </View>
 
-      {/* Localidad con sugerencias */}
       <View style={styles.grupo}>
         <CampoTexto
           etiqueta="LOCALIDAD"
@@ -245,7 +239,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
         )}
       </View>
 
-      {/* Calle y altura */}
       <CampoTexto
         etiqueta="CALLE Y ALTURA"
         placeholder="Ej: Av Santa Fe 1234"

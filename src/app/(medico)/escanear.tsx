@@ -9,9 +9,7 @@ import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 import { PACIENTE_EJEMPLO } from '@/data/usuarios-ejemplo';
 
-// Pestaña izquierda del médico. Tiene dos estados:
-//   - sin paciente escaneado → lector de QR
-//   - con paciente escaneado → sus datos y las dosis de la atención actual
+// Pestaña izquierda del médico: lector de QR, o la atención actual si ya hay un paciente escaneado.
 export default function EscanearScreen() {
   const { pacienteEscaneado, escanearPaciente } = useSesion();
   const [atencionEnviada, setAtencionEnviada] = useState(false);
@@ -20,7 +18,7 @@ export default function EscanearScreen() {
     return <AtencionActual onEnviada={() => setAtencionEnviada(true)} />;
   }
 
-  // El escaneo es de mentira: en vez de usar la cámara, "encuentra" al paciente de ejemplo
+  // Escaneo simulado: devuelve al paciente de ejemplo
   function simularEscaneo() {
     setAtencionEnviada(false);
     escanearPaciente(PACIENTE_EJEMPLO);
@@ -38,7 +36,6 @@ export default function EscanearScreen() {
           </View>
         )}
 
-        {/* Marco del visor con 4 esquinas */}
         <View style={styles.visor}>
           <View style={[styles.esquina, styles.arribaIzquierda]} />
           <View style={[styles.esquina, styles.arribaDerecha]} />

@@ -6,13 +6,10 @@ import { BotonCentralTabs, ESTILO_BARRA_TABS } from '@/components/boton-central-
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
-// Barra inferior del médico:
-//   izquierda → escanear QR (con un paciente escaneado pasa a mostrar su atención)
-//   centro (destacada) → calculadora · derecha → perfil
+// Barra inferior del médico: escanear, calculadora (centro) y perfil.
 export default function MedicoLayout() {
   const { usuario, pacienteEscaneado } = useSesion();
 
-  // Si no hay un médico con sesión iniciada, volvemos al ingreso
   if (usuario === null || usuario.rol !== 'medico') {
     return <Redirect href="/" />;
   }

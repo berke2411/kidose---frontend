@@ -1,56 +1,74 @@
-# Welcome to your Expo app 👋
+# Kidose
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App móvil educativa de dosificación pediátrica de emergencia para personal de salud (Expo / React Native con TypeScript). Es un proyecto universitario: no maneja datos médicos reales y no implica responsabilidad médica.
 
-## Get started
+Este repositorio contiene solo el frontend. Los datos de usuarios, historial y medicamentos son de prueba y viven en la app.
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Cómo correrla
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Se abre en el celular con Expo Go (escaneando el QR) o en un emulador.
 
-### Other setup steps
+Cuentas de prueba:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+| Rol | Email | Contraseña |
+|---|---|---|
+| Médico | medico@kidose.com | Medico123 |
+| Paciente | paciente@kidose.com | Paciente123 |
 
-## Learn more
+## Qué hace
 
-To learn more about developing your project with Expo, look at the following resources:
+**Médico**
+- Escanea el QR de un paciente (por ahora simulado) y ve su atención actual con peso, edad y alergias.
+- Puede corregir el peso del paciente si cambió.
+- Calculadora de dosis por peso, con dosis máxima y botón para suministrar.
+- "Más info" en cada medicamento: contraindicaciones de la ficha técnica.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**Paciente**
+- Muestra su QR, consulta su historial de atenciones y ve las contraindicaciones de cada medicamento que recibió.
 
-## Join the community
+**Ambos**
+- La sesión se conserva al cerrar la app.
+- Registro de cuentas: el médico se verifica con un registro de matrículas (simulado) y el paciente con su dirección validada con Georef.
 
-Join our community of developers creating universal apps.
+## Estructura
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+src/
+  app/          pantallas (cada archivo es una ruta de Expo Router)
+    (medico)/     escanear, calculadora, perfil
+    (paciente)/   historial, mi QR, perfil
+  components/   componentes reutilizables
+  constants/    paleta de colores de la guía visual
+  context/      sesion.tsx: estado compartido de la app
+  data/         tipos y datos de prueba
+  services/     llamadas a APIs externas
+  utils/        funciones puras (cálculo de dosis, validaciones, peso)
+```
+
+## Decisiones de diseño
+
+- **Un solo Context (`SesionProvider`)** para lo que comparten varias pantallas: quién inició sesión, el paciente escaneado y las dosis suministradas. El resto del estado es local de cada pantalla (`useState`).
+- **El `value` del Provider va con `useMemo`** y sus funciones con `useCallback`, para que las pantallas no se rendericen de nuevo si nada cambió.
+- **AsyncStorage** guarda la sesión. Se guardan solo los emails (no la contraseña ni los datos completos) y el usuario se reconstruye al abrir la app.
+- **Valores derivados no se guardan en estado:** el peso que usa la calculadora, la categoría elegida y las dosis calculadas se calculan en cada render a partir del estado real.
+- **Los servicios (`services/`) son el único lugar que habla con internet**; las pantallas solo reciben datos o un error.
+
+## APIs usadas
+
+| API | Para qué | Archivo |
+|---|---|---|
+| [Georef](https://datos.gob.ar/dataset/modernizacion-georef) (Estado argentino) | Verificar la dirección del paciente al registrarse | `services/georef.ts` |
+| [CIMA](https://cima.aemps.es/cima/doc/rest.html) (agencia de medicamentos de España) | Contraindicaciones de cada medicamento, en español | `services/cima.ts` |
+
+Las dos son públicas y no necesitan clave.
+
+## Limitaciones conocidas
+
+- Los valores de dosis de `data/medicamentos-ejemplo.ts` son de maqueta y no están validados. Deben reemplazarse por los de la fuente autorizada (libro de Medicamentos en Emergencias Pediátricas de la SAE) antes de cualquier uso real.
+- Las contraindicaciones de CIMA son fichas técnicas de España, no de Argentina, y no todos los medicamentos están disponibles.
+- El escaneo de QR es simulado y no hay backend: el login, el historial y el registro de cuentas son de prueba.

@@ -1,13 +1,18 @@
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { BotonInfo } from '@/components/boton-info';
 import { Encabezado } from '@/components/encabezado';
+import { ModalInfoMedicamento } from '@/components/modal-info-medicamento';
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
+import { buscarMedicamento, Medicamento } from '@/data/medicamentos-ejemplo';
 import { formatearNumero } from '@/utils/calcular-dosis';
 
 // Pestaña izquierda del paciente: historial de atenciones (fecha, médico y dosis).
 export default function HistorialScreen() {
   const { usuario } = useSesion();
+  const [medicamentoInfo, setMedicamentoInfo] = useState<Medicamento | null>(null);
 
   if (usuario === null || usuario.rol !== 'paciente') return null;
 
@@ -29,22 +34,29 @@ export default function HistorialScreen() {
 
             <View style={styles.divisor} />
 
-            {atencion.dosis.map((dosis) => (
-              <View key={dosis.id} style={styles.filaDosis}>
-                <View style={styles.textoDosis}>
-                  <Text style={styles.nombreDosis}>{dosis.medicamento}</Text>
-                  <Text style={styles.detalle}>
-                    {dosis.via} · {dosis.hora}
+            {atencion.dosis.map((dosis) => {
+              // El historial guarda solo el nombre: buscamos el medicamento completo
+              const medicamento = buscarMedicamento(dosis.medicamento);
+              return (
+                <View key={dosis.id} style={styles.filaDosis}>
+                  <View style={styles.textoDosis}>
+                    <Text style={styles.nombreDosis}>{dosis.medicamento}</Text>
+                    <Text style={styles.detalle}>
+                      {dosis.via} · {dosis.hora}
+                    </Text>
+                    {medicamento && <BotonInfo onPress={() => setMedicamentoInfo(medicamento)} />}
+                  </View>
+                  <Text style={styles.cantidad}>
+                    {formatearNumero(dosis.cantidad)} {dosis.unidad}
                   </Text>
                 </View>
-                <Text style={styles.cantidad}>
-                  {formatearNumero(dosis.cantidad)} {dosis.unidad}
-                </Text>
-              </View>
-            ))}
+              );
+            })}
           </View>
         ))}
       </ScrollView>
+
+      <ModalInfoMedicamento medicamento={medicamentoInfo} onCerrar={() => setMedicamentoInfo(null)} />
     </View>
   );
 }

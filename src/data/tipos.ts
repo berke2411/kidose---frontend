@@ -60,6 +60,13 @@ export type OpcionGeoref = {
   detalle?: string; // ej: el departamento, para distinguir localidades con el mismo nombre
 };
 
+// Contraindicaciones de un medicamento, tomadas de la ficha técnica de CIMA.
+export type Contraindicaciones = {
+  producto: string; // medicamento de la ficha técnica consultada
+  laboratorio: string;
+  texto: string;
+};
+
 // Dirección confirmada por Georef.
 export type DireccionVerificada = {
   provincia: string;

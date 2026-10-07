@@ -9,6 +9,7 @@ import { CampoTexto } from '@/components/campo-texto';
 import { CamposDireccion } from '@/components/campos-direccion';
 import { COLORES } from '@/constants/colores';
 import { DireccionVerificada, ProfesionalRegistrado } from '@/data/tipos';
+import { USUARIOS } from '@/data/usuarios-ejemplo';
 import { buscarMatricula } from '@/services/registro-matriculas';
 import {
   nombresIguales,
@@ -32,12 +33,11 @@ export default function SolicitarCuentaScreen() {
   const [contrasena, setContrasena] = useState('');
   // Dirección confirmada por Georef (solo pacientes); null mientras no esté confirmada
   const [direccion, setDireccion] = useState<DireccionVerificada | null>(null);
-  const [intentoEnviar, setIntentoEnviar] = useState(false); // los errores se muestran al enviar
+  const [intentoEnviar, setIntentoEnviar] = useState(false);
 
   const esMedico = rol === 'medico';
 
-  // --- Verificación de la matrícula en tiempo real ---
-  // "consulta" guarda la última respuesta del registro y de qué matrícula era.
+  // "consulta" guarda la última respuesta del registro y de qué matrícula era
   const [consulta, setConsulta] = useState<{
     matricula: string;
     profesional: ProfesionalRegistrado | null;
@@ -45,8 +45,7 @@ export default function SolicitarCuentaScreen() {
 
   const matriculaConFormatoValido = validarMatricula(matricula) === null;
 
-  // Cada vez que cambia la matrícula (y tiene formato válido) se consulta el registro.
-  // "cancelado" evita usar una respuesta vieja si el usuario siguió escribiendo.
+  // "cancelado" evita usar una respuesta vieja si el usuario siguió escribiendo
   useEffect(() => {
     if (!matriculaConFormatoValido) return;
 
@@ -64,7 +63,7 @@ export default function SolicitarCuentaScreen() {
   // profesional: datos del registro; null = no existe; undefined = todavía sin respuesta
   const profesional = respuestaEsActual ? consulta.profesional : undefined;
 
-  // --- Errores de cada campo (null = está bien) ---
+  // Error de cada campo (null = está bien)
   const errores = {
     nombre:
       validarNombre(nombre) ??
@@ -76,7 +75,12 @@ export default function SolicitarCuentaScreen() {
       (esMedico && profesional && dni.trim() !== profesional.dni
         ? 'El DNI no coincide con el de la matrícula.'
         : null),
-    email: validarEmail(email),
+    email:
+      validarEmail(email) ??
+      (USUARIOS.some((usuario) => usuario.email === email.trim().toLowerCase())
+        ? 'Ya existe una cuenta con este email.'
+        : null),
+    hospital: esMedico && hospital.trim() === '' ? 'Ingresá tu hospital o institución.' : null,
     matricula: esMedico
       ? (validarMatricula(matricula) ??
         (buscando
@@ -86,12 +90,11 @@ export default function SolicitarCuentaScreen() {
             : null))
       : null,
     contrasena: validarContrasena(contrasena),
-    // Los mensajes de la dirección los muestra el propio componente CamposDireccion
     direccion: !esMedico && direccion === null ? 'Falta verificar la dirección.' : null,
   };
   const hayErrores = Object.values(errores).some((error) => error !== null);
 
-  // Los errores se muestran recién al apretar "Enviar"
+  // Los errores aparecen recién después de apretar el botón de enviar
   function verError(error: string | null) {
     return intentoEnviar && error ? error : undefined;
   }
@@ -147,7 +150,6 @@ export default function SolicitarCuentaScreen() {
             </Pressable>
           </View>
 
-          {/* Matrícula primero: al verificarla se comparan el nombre y el DNI */}
           {esMedico && (
             <CampoTexto
               etiqueta="MATRÍCULA PROFESIONAL"
@@ -191,6 +193,7 @@ export default function SolicitarCuentaScreen() {
               value={hospital}
               onChangeText={setHospital}
               mayusculas
+              error={verError(errores.hospital)}
             />
           )}
           <CampoTexto

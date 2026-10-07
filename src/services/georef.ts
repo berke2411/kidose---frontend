@@ -1,12 +1,9 @@
 import { DireccionVerificada, OpcionGeoref } from '@/data/tipos';
 
-// Georef: API pública y gratuita del Estado argentino (datos.gob.ar) con
-// provincias, localidades y direcciones. No necesita clave, por eso se usa
-// directo desde la app. Si falla la conexión, estas funciones lanzan un error
-// y la pantalla que las llama muestra un aviso.
+// Georef: API pública del Estado argentino (datos.gob.ar) con provincias, localidades
+// y direcciones. No necesita clave. Si falla la conexión, las funciones lanzan un error.
 const URL_BASE = 'https://apis.datos.gob.ar/georef/api';
 
-// Hace el pedido y devuelve la respuesta ya convertida a objeto
 async function pedir(ruta: string, parametros: Record<string, string>) {
   const consulta = Object.keys(parametros)
     .map((clave) => `${clave}=${encodeURIComponent(parametros[clave])}`)

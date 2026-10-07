@@ -21,7 +21,6 @@ export function BotonCentralTabs({ onPress, icono }: Props) {
   );
 }
 
-// Estilo de la barra inferior, igual para los dos tipos de usuario
 export const ESTILO_BARRA_TABS = {
   backgroundColor: COLORES.blanco,
   borderTopColor: COLORES.divisor,
@@ -35,7 +34,7 @@ const styles = StyleSheet.create({
   boton: {
     width: 62,
     height: 62,
-    marginTop: -22, // negativo: lo "levanta" por encima de la barra
+    marginTop: -22, // sobresale de la barra
     borderRadius: 20,
     backgroundColor: COLORES.azulPrimario,
     alignItems: 'center',

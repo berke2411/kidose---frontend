@@ -12,7 +12,6 @@ type Props = {
 
 // Barra azul superior que comparten las pantallas principales.
 export function Encabezado({ etiqueta, children }: Props) {
-  // "insets" nos dice cuánto espacio ocupa la barra de estado del celular
   const insets = useSafeAreaInsets();
 
   return (

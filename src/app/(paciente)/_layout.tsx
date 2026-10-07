@@ -6,12 +6,10 @@ import { BotonCentralTabs, ESTILO_BARRA_TABS } from '@/components/boton-central-
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
-// Barra inferior del paciente:
-//   izquierda → historial · centro (destacada) → mi QR · derecha → perfil
+// Barra inferior del paciente: historial, mi QR (centro) y perfil.
 export default function PacienteLayout() {
   const { usuario } = useSesion();
 
-  // Si no hay un paciente con sesión iniciada, volvemos al ingreso
   if (usuario === null || usuario.rol !== 'paciente') {
     return <Redirect href="/" />;
   }

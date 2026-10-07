@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,17 +12,16 @@ import { USUARIOS } from '@/data/usuarios-ejemplo';
 import { validarEmail } from '@/utils/validaciones';
 
 // Pantalla de ingreso: es lo primero que ve el usuario al abrir la app.
-// Sin base de datos todavía: se ingresa con las cuentas de prueba de USUARIOS.
+// Sin backend: se ingresa con las cuentas de prueba de USUARIOS.
 export default function IngresoScreen() {
   const insets = useSafeAreaInsets();
-  const { iniciarSesion } = useSesion();
+  const { usuario: usuarioActual, iniciarSesion } = useSesion();
   const [email, setEmail] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [errorEmail, setErrorEmail] = useState('');
   const [errorContrasena, setErrorContrasena] = useState('');
 
   function ingresar() {
-    // Cada error se muestra debajo de su propio campo
     const problemaEmail = validarEmail(email);
     const problemaContrasena = contrasena === '' ? 'Ingresá tu contraseña.' : null;
     setErrorEmail(problemaEmail ?? '');
@@ -38,12 +37,15 @@ export default function IngresoScreen() {
     }
 
     iniciarSesion(usuario);
-    // "replace" en lugar de "push": así no se puede volver al login con "atrás"
-    router.replace(usuario.rol === 'medico' ? '/escanear' : '/mi-qr');
   }
 
   function irASolicitarCuenta() {
     router.push('/solicitar-cuenta');
+  }
+
+  // Con sesión iniciada (recién ingresada o recuperada) se salta el login
+  if (usuarioActual !== null) {
+    return <Redirect href={usuarioActual.rol === 'medico' ? '/escanear' : '/mi-qr'} />;
   }
 
   return (
