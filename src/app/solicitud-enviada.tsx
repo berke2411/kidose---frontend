@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 
 // Confirmación del registro. El médico queda pendiente hasta que un admin lo apruebe;
 // el paciente ya puede ingresar.
@@ -75,17 +76,18 @@ const styles = StyleSheet.create({
   },
   chipTexto: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     letterSpacing: 1.1,
     color: COLORES.azulPrimario,
   },
   titulo: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   descripcion: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 21,
     color: COLORES.gris,
     textAlign: 'center',

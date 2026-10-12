@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Boton } from '@/components/boton';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { formatearNumero } from '@/utils/calcular-dosis';
 import { restarPeso, sumarPeso } from '@/utils/peso';
@@ -118,11 +119,12 @@ const styles = StyleSheet.create({
   },
   nombre: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   detalle: {
     fontSize: 13,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
   },
   filaPeso: {
@@ -144,7 +146,7 @@ const styles = StyleSheet.create({
   },
   numeroPeso: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   filaAlergias: {
@@ -160,19 +162,20 @@ const styles = StyleSheet.create({
   },
   chipAlergiaTexto: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     letterSpacing: 0.8,
     color: COLORES.rojoAcento,
   },
   subtitulo: {
     marginTop: 8,
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.3,
     color: COLORES.gris,
   },
   vacio: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 21,
     color: COLORES.gris,
   },
@@ -194,12 +197,12 @@ const styles = StyleSheet.create({
   },
   nombreDosis: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   cantidad: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.azulPrimario,
   },
   botonQuitar: {

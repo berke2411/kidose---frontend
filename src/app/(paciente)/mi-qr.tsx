@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Encabezado } from '@/components/encabezado';
 import { QrFalso } from '@/components/qr-falso';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 
 // Pestaña central del paciente: su QR para que el médico lo escanee.
@@ -52,21 +53,24 @@ const styles = StyleSheet.create({
   },
   nombre: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   dni: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
   },
   descripcion: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 21,
     color: COLORES.gris,
     textAlign: 'center',
   },
   aclaracion: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
   },
 });

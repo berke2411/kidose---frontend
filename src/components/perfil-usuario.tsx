@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Boton } from '@/components/boton';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 
 // Pantalla de perfil: la usan médico y paciente (cambian los datos que se muestran).
@@ -98,12 +99,12 @@ const styles = StyleSheet.create({
   },
   iniciales: {
     fontSize: 34,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.blanco,
   },
   nombre: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   chipRol: {
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   },
   chipRolTexto: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     letterSpacing: 1.1,
     color: COLORES.azulPrimario,
   },
@@ -129,12 +130,13 @@ const styles = StyleSheet.create({
   },
   etiqueta: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.3,
     color: COLORES.gris,
   },
   valor: {
     fontSize: 16,
+    fontFamily: FUENTES.normal,
     color: COLORES.texto,
   },
 });

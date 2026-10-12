@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Logo } from '@/components/logo';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 
 type Props = {
   etiqueta: string; // texto chico a la derecha (ej: "QR")
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   etiqueta: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.3,
     color: COLORES.azulTextoSobreAzul,
   },

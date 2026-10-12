@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { CampoTexto } from '@/components/campo-texto';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { DireccionVerificada, OpcionGeoref } from '@/data/tipos';
 import { buscarLocalidades, listarProvincias, verificarDireccion } from '@/services/georef';
 import { validarDireccion } from '@/utils/validaciones';
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   },
   etiqueta: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.3,
     color: COLORES.gris,
   },
@@ -281,10 +282,12 @@ const styles = StyleSheet.create({
   },
   valor: {
     fontSize: 16,
+    fontFamily: FUENTES.normal,
     color: COLORES.texto,
   },
   placeholder: {
     fontSize: 16,
+    fontFamily: FUENTES.normal,
     color: COLORES.grisIconoInactivo,
   },
   lista: {
@@ -305,10 +308,12 @@ const styles = StyleSheet.create({
   },
   textoLista: {
     fontSize: 15,
+    fontFamily: FUENTES.normal,
     color: COLORES.texto,
   },
   error: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     color: COLORES.rojoAcento,
   },
 });

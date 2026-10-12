@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 
 type Props = {
   tamano?: 'chico' | 'grande';
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   },
   nombre: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.blanco,
   },
   nombreGrande: {

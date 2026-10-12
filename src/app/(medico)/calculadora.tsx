@@ -6,6 +6,7 @@ import { Encabezado } from '@/components/encabezado';
 import { ModalInfoMedicamento } from '@/components/modal-info-medicamento';
 import { TarjetaDosis } from '@/components/tarjeta-dosis';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { CATEGORIAS, Medicamento, PESOS_POR_EDAD } from '@/data/medicamentos-ejemplo';
 import { formatearNumero } from '@/utils/calcular-dosis';
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   },
   etiquetaPeso: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.5,
     color: COLORES.azulTextoSobreAzul,
   },
@@ -160,12 +161,12 @@ const styles = StyleSheet.create({
   },
   numeroPeso: {
     fontSize: 54,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.blanco,
   },
   unidadPeso: {
     fontSize: 20,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     color: COLORES.azulTextoSobreAzul,
   },
   filaEdades: {
@@ -182,12 +183,12 @@ const styles = StyleSheet.create({
   },
   textoEdad: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     color: COLORES.blanco,
   },
   kgEdad: {
     fontSize: 9,
-    fontWeight: '500',
+    fontFamily: FUENTES.media,
     color: COLORES.azulTextoSobreAzul,
   },
 
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
   },
   textoCategoria: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     color: COLORES.gris,
   },
   textoCategoriaActiva: {
@@ -233,6 +234,7 @@ const styles = StyleSheet.create({
   },
   avisoTexto: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     lineHeight: 18,
     color: COLORES.azulPrimario,
   },

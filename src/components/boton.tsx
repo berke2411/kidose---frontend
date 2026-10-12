@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 
 type Props = {
   texto: string;
@@ -39,7 +40,7 @@ const styles = StyleSheet.create({
   },
   texto: {
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
   },
   textoPrimario: {
     color: COLORES.blanco,

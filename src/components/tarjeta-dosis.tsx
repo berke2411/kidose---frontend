@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Boton } from '@/components/boton';
 import { BotonInfo } from '@/components/boton-info';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { Medicamento } from '@/data/medicamentos-ejemplo';
 import { calcularDosis, formatearNumero } from '@/utils/calcular-dosis';
 
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
   nombre: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   chipVia: {
@@ -87,13 +88,13 @@ const styles = StyleSheet.create({
   },
   chipViaTexto: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     letterSpacing: 1,
     color: COLORES.azulPrimario,
   },
   valor: {
     fontSize: 30,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
   },
   filaInferior: {
     flexDirection: 'row',
@@ -103,6 +104,7 @@ const styles = StyleSheet.create({
   nota: {
     flex: 1,
     fontSize: 13,
+    fontFamily: FUENTES.normal,
     lineHeight: 18,
     color: COLORES.gris,
   },
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
   },
   chipMaximoTexto: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     letterSpacing: 0.8,
     color: COLORES.rojoAcento,
   },

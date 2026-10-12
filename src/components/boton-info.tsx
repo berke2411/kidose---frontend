@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 
 type Props = {
   onPress: () => void;
@@ -26,7 +27,7 @@ const styles = StyleSheet.create({
   },
   texto: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     color: COLORES.azulPrimario,
   },
 });

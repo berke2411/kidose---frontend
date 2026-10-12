@@ -1,6 +1,7 @@
 import { KeyboardTypeOptions, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 
 type Props = {
   etiqueta: string;
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   },
   etiqueta: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.3,
     color: COLORES.gris,
   },
@@ -66,6 +67,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     fontSize: 16,
+    fontFamily: FUENTES.normal,
     color: COLORES.texto,
     backgroundColor: COLORES.blanco,
   },
@@ -74,10 +76,12 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     color: COLORES.rojoAcento,
   },
   mensaje: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
   },
 });

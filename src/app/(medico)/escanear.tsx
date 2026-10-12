@@ -6,6 +6,7 @@ import { AtencionActual } from '@/components/atencion-actual';
 import { Boton } from '@/components/boton';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { PACIENTE_EJEMPLO } from '@/data/usuarios-ejemplo';
 
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   },
   avisoEnviadaTexto: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     color: COLORES.azulPrimario,
   },
   visor: {
@@ -123,6 +124,7 @@ const styles = StyleSheet.create({
   },
   descripcion: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 21,
     color: COLORES.gris,
     textAlign: 'center',
@@ -132,6 +134,7 @@ const styles = StyleSheet.create({
   },
   aclaracion: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
   },
 });

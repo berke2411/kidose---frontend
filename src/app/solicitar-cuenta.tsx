@@ -8,6 +8,7 @@ import { Boton } from '@/components/boton';
 import { CampoTexto } from '@/components/campo-texto';
 import { CamposDireccion } from '@/components/campos-direccion';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { DireccionVerificada, ProfesionalRegistrado } from '@/data/tipos';
 import { USUARIOS } from '@/data/usuarios-ejemplo';
 import { buscarMatricula } from '@/services/registro-matriculas';
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   },
   tituloEncabezado: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.blanco,
   },
   contenido: {
@@ -250,6 +251,7 @@ const styles = StyleSheet.create({
   },
   intro: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 21,
     color: COLORES.gris,
   },
@@ -261,7 +263,7 @@ const styles = StyleSheet.create({
   },
   etiqueta: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.3,
     color: COLORES.gris,
     marginBottom: -10,
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
   },
   opcionTexto: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     color: COLORES.gris,
   },
   opcionTextoActivo: {
@@ -292,6 +294,7 @@ const styles = StyleSheet.create({
   },
   aclaracion: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     lineHeight: 18,
     color: COLORES.gris,
     textAlign: 'center',

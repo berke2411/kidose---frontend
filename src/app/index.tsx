@@ -7,6 +7,7 @@ import { Boton } from '@/components/boton';
 import { CampoTexto } from '@/components/campo-texto';
 import { Logo } from '@/components/logo';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { USUARIOS } from '@/data/usuarios-ejemplo';
 import { validarEmail } from '@/utils/validaciones';
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
   },
   lema: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: FUENTES.media,
     letterSpacing: 2,
     color: COLORES.azulTextoSobreAzul,
   },
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
   },
   titulo: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   divisor: {
@@ -136,11 +137,13 @@ const styles = StyleSheet.create({
   },
   pregunta: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
     textAlign: 'center',
   },
   aclaracion: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     lineHeight: 18,
     color: COLORES.gris,
     textAlign: 'center',

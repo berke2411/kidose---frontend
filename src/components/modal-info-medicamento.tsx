@@ -3,6 +3,7 @@ import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, View } from 're
 
 import { Boton } from '@/components/boton';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { Medicamento } from '@/data/medicamentos-ejemplo';
 import { Contraindicaciones } from '@/data/tipos';
 import { buscarContraindicaciones } from '@/services/cima';
@@ -95,12 +96,12 @@ const styles = StyleSheet.create({
   },
   titulo: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   seccion: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: FUENTES.seminegrita,
     letterSpacing: 1.5,
     color: COLORES.gris,
   },
@@ -109,6 +110,7 @@ const styles = StyleSheet.create({
   },
   mensaje: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 20,
     color: COLORES.gris,
   },
@@ -122,11 +124,13 @@ const styles = StyleSheet.create({
   },
   texto: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     lineHeight: 21,
     color: COLORES.texto,
   },
   fuente: {
     fontSize: 12,
+    fontFamily: FUENTES.normal,
     lineHeight: 18,
     color: COLORES.gris,
   },

@@ -5,6 +5,7 @@ import { BotonInfo } from '@/components/boton-info';
 import { Encabezado } from '@/components/encabezado';
 import { ModalInfoMedicamento } from '@/components/modal-info-medicamento';
 import { COLORES } from '@/constants/colores';
+import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { buscarMedicamento, Medicamento } from '@/data/medicamentos-ejemplo';
 import { formatearNumero } from '@/utils/calcular-dosis';
@@ -73,6 +74,7 @@ const styles = StyleSheet.create({
   },
   vacio: {
     fontSize: 14,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
     textAlign: 'center',
     marginTop: 40,
@@ -85,11 +87,12 @@ const styles = StyleSheet.create({
   },
   fecha: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   detalle: {
     fontSize: 13,
+    fontFamily: FUENTES.normal,
     color: COLORES.gris,
   },
   divisor: {
@@ -107,12 +110,12 @@ const styles = StyleSheet.create({
   },
   nombreDosis: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.texto,
   },
   cantidad: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: FUENTES.negrita,
     color: COLORES.azulPrimario,
   },
 });
