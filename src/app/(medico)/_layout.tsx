@@ -6,6 +6,9 @@ import { BotonCentralTabs, ESTILO_BARRA_TABS } from '@/components/boton-central-
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
+// Pestaña inicial del grupo
+export const unstable_settings = { anchor: 'escanear' };
+
 // Barra inferior del médico: escanear, calculadora (centro) y perfil.
 export default function MedicoLayout() {
   const { usuario, pacienteEscaneado } = useSesion();
@@ -16,7 +19,6 @@ export default function MedicoLayout() {
 
   return (
     <Tabs
-      initialRouteName="escanear"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORES.azulPrimario,
@@ -31,7 +33,7 @@ export default function MedicoLayout() {
             <Ionicons
               name={pacienteEscaneado ? 'person-outline' : 'qr-code-outline'}
               size={size}
-              color={color}
+              color={color as string}
             />
           ),
         }}
@@ -50,7 +52,7 @@ export default function MedicoLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" size={size} color={color} />
+            <Ionicons name="person-circle-outline" size={size} color={color as string} />
           ),
         }}
       />

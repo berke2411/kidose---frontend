@@ -1,5 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AtencionActual } from '@/components/atencion-actual';
@@ -8,21 +10,56 @@ import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
-import { PACIENTE_EJEMPLO } from '@/data/usuarios-ejemplo';
+import { leerCodigoQr } from '@/services/api';
+
+// Lo que viene antes del código en el QR del paciente (así se ignoran otros QR)
+const PREFIJO_QR = 'kidose:';
 
 // Pestaña izquierda del médico: lector de QR, o la atención actual si ya hay un paciente escaneado.
 export default function EscanearScreen() {
   const { pacienteEscaneado, escanearPaciente } = useSesion();
+  const [permiso, pedirPermiso] = useCameraPermissions();
   const [atencionEnviada, setAtencionEnviada] = useState(false);
+  const [error, setError] = useState('');
+  const [consultando, setConsultando] = useState(false);
+  // La cámara solo se enciende con la pestaña a la vista (solo puede haber una cámara activa)
+  const [camaraActiva, setCamaraActiva] = useState(false);
+  // La cámara avisa muchas veces por el mismo QR: con esto se procesa uno a la vez
+  const leyendo = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setCamaraActiva(true);
+      return () => setCamaraActiva(false);
+    }, [])
+  );
 
   if (pacienteEscaneado) {
     return <AtencionActual onEnviada={() => setAtencionEnviada(true)} />;
   }
 
-  // Escaneo simulado: devuelve al paciente de ejemplo
-  function simularEscaneo() {
+  async function alLeerQr(contenido: string) {
+    if (leyendo.current) return;
+    leyendo.current = true;
+    setConsultando(true);
     setAtencionEnviada(false);
-    escanearPaciente(PACIENTE_EJEMPLO);
+    setError('');
+
+    try {
+      if (!contenido.startsWith(PREFIJO_QR)) {
+        throw new Error('Este QR no es de un paciente de Kidose.');
+      }
+      const paciente = await leerCodigoQr(contenido.slice(PREFIJO_QR.length));
+      escanearPaciente(paciente);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo leer el código.');
+    } finally {
+      setConsultando(false);
+      // Se espera un momento antes de aceptar otro QR, para no repetir el mismo error sin parar
+      setTimeout(() => {
+        leyendo.current = false;
+      }, 1500);
+    }
   }
 
   return (
@@ -38,19 +75,38 @@ export default function EscanearScreen() {
         )}
 
         <View style={styles.visor}>
+          {permiso?.granted && camaraActiva ? (
+            <CameraView
+              style={styles.camara}
+              facing="back"
+              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+              onBarcodeScanned={({ data }) => alLeerQr(data)}
+            />
+          ) : (
+            <Ionicons name="qr-code-outline" size={90} color={COLORES.grisIconoInactivo} />
+          )}
           <View style={[styles.esquina, styles.arribaIzquierda]} />
           <View style={[styles.esquina, styles.arribaDerecha]} />
           <View style={[styles.esquina, styles.abajoIzquierda]} />
           <View style={[styles.esquina, styles.abajoDerecha]} />
-          <Ionicons name="qr-code-outline" size={90} color={COLORES.grisIconoInactivo} />
         </View>
 
-        <Text style={styles.descripcion}>Apuntá la cámara al código QR del paciente.</Text>
+        {permiso !== null && !permiso.granted ? (
+          <>
+            <Text style={styles.descripcion}>
+              Necesitamos permiso para usar la cámara y leer el QR del paciente.
+            </Text>
+            <View style={styles.contenedorBoton}>
+              <Boton texto="Permitir cámara" onPress={pedirPermiso} />
+            </View>
+          </>
+        ) : (
+          <Text style={styles.descripcion}>
+            {consultando ? 'Buscando al paciente…' : 'Apuntá la cámara al código QR del paciente.'}
+          </Text>
+        )}
 
-        <View style={styles.contenedorBoton}>
-          <Boton texto="Simular escaneo" onPress={simularEscaneo} />
-        </View>
-        <Text style={styles.aclaracion}>Prototipo: todavía no usa la cámara.</Text>
+        {error !== '' && <Text style={styles.error}>{error}</Text>}
       </View>
     </View>
   );
@@ -91,6 +147,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: COLORES.blanco,
     borderRadius: 20,
+    overflow: 'hidden',
+  },
+  camara: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  error: {
+    fontSize: 14,
+    fontFamily: FUENTES.seminegrita,
+    lineHeight: 20,
+    color: COLORES.rojoAcento,
+    textAlign: 'center',
   },
   esquina: {
     position: 'absolute',

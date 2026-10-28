@@ -6,6 +6,9 @@ import { BotonCentralTabs, ESTILO_BARRA_TABS } from '@/components/boton-central-
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
+// Pestaña inicial del grupo
+export const unstable_settings = { anchor: 'mi-qr' };
+
 // Barra inferior del paciente: historial, mi QR (centro) y perfil.
 export default function PacienteLayout() {
   const { usuario } = useSesion();
@@ -16,7 +19,6 @@ export default function PacienteLayout() {
 
   return (
     <Tabs
-      initialRouteName="mi-qr"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORES.azulPrimario,
@@ -27,7 +29,7 @@ export default function PacienteLayout() {
         name="historial"
         options={{
           title: 'Historial',
-          tabBarIcon: ({ color, size }) => <Ionicons name="time-outline" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="time-outline" size={size} color={color as string} />,
         }}
       />
 
@@ -46,7 +48,7 @@ export default function PacienteLayout() {
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" size={size} color={color} />
+            <Ionicons name="person-circle-outline" size={size} color={color as string} />
           ),
         }}
       />

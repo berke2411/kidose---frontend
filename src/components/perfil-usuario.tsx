@@ -2,10 +2,12 @@ import { router } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
+import { EditorAlergias } from '@/components/editor-alergias';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
+import { calcularEdad } from '@/utils/fechas';
 
 // Pantalla de perfil: la usan médico y paciente (cambian los datos que se muestran).
 export function PerfilUsuario() {
@@ -13,22 +15,29 @@ export function PerfilUsuario() {
 
   if (usuario === null) return null;
 
-  const datos =
-    usuario.rol === 'medico'
-      ? [
-          ['EMAIL', usuario.email],
-          ['DNI', usuario.dni],
-          ['MATRÍCULA', usuario.matricula],
-          ['ESPECIALIDAD', usuario.especialidad],
-          ['HOSPITAL', usuario.hospital],
-        ]
-      : [
-          ['EMAIL', usuario.email],
-          ['DNI', usuario.dni],
-          ['EDAD', usuario.edad],
-          ['DIRECCIÓN', usuario.direccion],
-          ['ALERGIAS', usuario.alergias.length > 0 ? usuario.alergias.join(', ') : 'Ninguna conocida'],
-        ];
+  let datos: string[][];
+  if (usuario.rol === 'medico') {
+    datos = [
+      ['EMAIL', usuario.email],
+      ['DNI', usuario.dni],
+      ['MATRÍCULA', usuario.matricula],
+      ['ESPECIALIDAD', usuario.especialidad],
+      ['HOSPITAL', usuario.hospital],
+    ];
+  } else if (usuario.rol === 'paciente') {
+    datos = [
+      ['EMAIL', usuario.email],
+      ['DNI', usuario.dni],
+      ['EDAD', calcularEdad(usuario.fechaNacimiento)],
+      ['DIRECCIÓN', usuario.direccion],
+    ];
+  } else {
+    datos = [
+      ['EMAIL', usuario.email],
+      ['DNI', usuario.dni],
+    ];
+  }
+  const nombreRol = { medico: 'MÉDICO/A', paciente: 'PACIENTE', admin: 'ADMINISTRADOR' }[usuario.rol];
 
   // Iniciales para la "foto" (todavía no se puede subir una foto real)
   const iniciales = usuario.nombre
@@ -55,7 +64,7 @@ export function PerfilUsuario() {
           </View>
           <Text style={styles.nombre}>{usuario.nombre}</Text>
           <View style={styles.chipRol}>
-            <Text style={styles.chipRolTexto}>{usuario.rol === 'medico' ? 'MÉDICO/A' : 'PACIENTE'}</Text>
+            <Text style={styles.chipRolTexto}>{nombreRol}</Text>
           </View>
         </View>
 
@@ -67,6 +76,8 @@ export function PerfilUsuario() {
             </View>
           ))}
         </View>
+
+        {usuario.rol === 'paciente' && <EditorAlergias paciente={usuario} />}
 
         <Boton texto="Cerrar sesión" variante="secundario" onPress={salir} />
       </ScrollView>

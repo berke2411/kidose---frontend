@@ -4,8 +4,7 @@ import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, View } from 're
 import { Boton } from '@/components/boton';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
-import { Medicamento } from '@/data/medicamentos-ejemplo';
-import { Contraindicaciones } from '@/data/tipos';
+import { Contraindicaciones, Medicamento } from '@/data/tipos';
 import { buscarContraindicaciones } from '@/services/cima';
 
 type Props = {

@@ -9,11 +9,11 @@ import { Logo } from '@/components/logo';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
-import { USUARIOS } from '@/data/usuarios-ejemplo';
+import { iniciarSesionApi } from '@/services/api';
 import { validarEmail } from '@/utils/validaciones';
 
 // Pantalla de ingreso: es lo primero que ve el usuario al abrir la app.
-// Sin backend: se ingresa con las cuentas de prueba de USUARIOS.
+// El servidor verifica el email y la contraseña y devuelve el token de la sesión.
 export default function IngresoScreen() {
   const insets = useSafeAreaInsets();
   const { usuario: usuarioActual, iniciarSesion } = useSesion();
@@ -21,23 +21,24 @@ export default function IngresoScreen() {
   const [contrasena, setContrasena] = useState('');
   const [errorEmail, setErrorEmail] = useState('');
   const [errorContrasena, setErrorContrasena] = useState('');
+  const [ingresando, setIngresando] = useState(false);
 
-  function ingresar() {
+  async function ingresar() {
     const problemaEmail = validarEmail(email);
     const problemaContrasena = contrasena === '' ? 'Ingresá tu contraseña.' : null;
     setErrorEmail(problemaEmail ?? '');
     setErrorContrasena(problemaContrasena ?? '');
     if (problemaEmail || problemaContrasena) return;
 
-    const usuario = USUARIOS.find(
-      (u) => u.email === email.trim().toLowerCase() && u.contrasena === contrasena
-    );
-    if (usuario === undefined) {
-      setErrorContrasena('Email o contraseña incorrectos.');
-      return;
+    setIngresando(true);
+    try {
+      const { token, usuario } = await iniciarSesionApi(email.trim().toLowerCase(), contrasena);
+      iniciarSesion(token, usuario);
+    } catch (error) {
+      setErrorContrasena(error instanceof Error ? error.message : 'No se pudo ingresar.');
+    } finally {
+      setIngresando(false);
     }
-
-    iniciarSesion(usuario);
   }
 
   function irASolicitarCuenta() {
@@ -46,7 +47,8 @@ export default function IngresoScreen() {
 
   // Con sesión iniciada (recién ingresada o recuperada) se salta el login
   if (usuarioActual !== null) {
-    return <Redirect href={usuarioActual.rol === 'medico' ? '/escanear' : '/mi-qr'} />;
+    const inicio = { medico: '/escanear', paciente: '/mi-qr', admin: '/solicitudes' } as const;
+    return <Redirect href={inicio[usuarioActual.rol]} />;
   }
 
   return (
@@ -80,10 +82,10 @@ export default function IngresoScreen() {
           error={errorContrasena}
         />
 
-        <Boton texto="Ingresar" onPress={ingresar} />
+        <Boton texto={ingresando ? 'Ingresando…' : 'Ingresar'} onPress={ingresar} deshabilitado={ingresando} />
 
         <Text style={styles.aclaracion}>
-          Cuentas de prueba: medico@kidose.com / Medico123 · paciente@kidose.com / Paciente123
+          Cuentas de prueba: medico@kidose.com / Medico123 · paciente@kidose.com / Paciente123 · admin@kidose.com / Admin123
         </Text>
 
         <View style={styles.divisor} />

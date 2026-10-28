@@ -7,16 +7,22 @@ type Props = {
   texto: string;
   onPress: () => void;
   variante?: 'primario' | 'secundario';
+  deshabilitado?: boolean; // mientras espera una respuesta del servidor
 };
 
 // Botón de la guía visual: altura mínima de 56px.
-export function Boton({ texto, onPress, variante = 'primario' }: Props) {
+export function Boton({ texto, onPress, variante = 'primario', deshabilitado = false }: Props) {
   const esPrimario = variante === 'primario';
 
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.boton, esPrimario ? styles.fondoPrimario : styles.fondoSecundario]}>
+      disabled={deshabilitado}
+      style={[
+        styles.boton,
+        esPrimario ? styles.fondoPrimario : styles.fondoSecundario,
+        deshabilitado && styles.deshabilitado,
+      ]}>
       <Text style={[styles.texto, esPrimario ? styles.textoPrimario : styles.textoSecundario]}>
         {texto}
       </Text>
@@ -31,6 +37,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
+  },
+  deshabilitado: {
+    opacity: 0.5,
   },
   fondoPrimario: {
     backgroundColor: COLORES.azulPrimario,

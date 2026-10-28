@@ -1,12 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
+import { BotonExportar } from '@/components/boton-exportar';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
+import { enviarAtencion as enviarAtencionApi } from '@/services/api';
 import { formatearNumero } from '@/utils/calcular-dosis';
+import { calcularEdad, formatearHora } from '@/utils/fechas';
 import { restarPeso, sumarPeso } from '@/utils/peso';
 
 type Props = {
@@ -19,12 +23,23 @@ export function AtencionActual({ onEnviada }: Props) {
   const { pacienteEscaneado, dosisSuministradas, actualizarPeso, quitarDosis, terminarAtencion } =
     useSesion();
 
+  const [enviando, setEnviando] = useState(false);
+
   if (pacienteEscaneado === null) return null;
 
-  function enviarAtencion() {
-    // Sin backend todavía: solo se cierra la atención
-    terminarAtencion();
-    onEnviada();
+  // Guarda la atención en el servidor; recién cuando responde bien se cierra la pantalla
+  async function enviarAtencion() {
+    if (pacienteEscaneado === null) return;
+    setEnviando(true);
+    try {
+      await enviarAtencionApi(pacienteEscaneado.id, pacienteEscaneado.pesoKg, dosisSuministradas);
+      terminarAtencion();
+      onEnviada();
+    } catch (error) {
+      Alert.alert('No se pudo enviar la atención', error instanceof Error ? error.message : 'Intentá de nuevo.');
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -35,7 +50,7 @@ export function AtencionActual({ onEnviada }: Props) {
         <View style={styles.tarjeta}>
           <Text style={styles.nombre}>{pacienteEscaneado.nombre}</Text>
           <Text style={styles.detalle}>
-            {pacienteEscaneado.edad} · DNI {pacienteEscaneado.dni}
+            {calcularEdad(pacienteEscaneado.fechaNacimiento)} · DNI {pacienteEscaneado.dni}
           </Text>
 
           <View style={styles.filaPeso}>
@@ -67,6 +82,8 @@ export function AtencionActual({ onEnviada }: Props) {
           </View>
         </View>
 
+        <BotonExportar paciente={pacienteEscaneado} />
+
         <Text style={styles.subtitulo}>DOSIS SUMINISTRADAS</Text>
 
         {dosisSuministradas.length === 0 && (
@@ -78,9 +95,9 @@ export function AtencionActual({ onEnviada }: Props) {
         {dosisSuministradas.map((dosis) => (
           <View key={dosis.id} style={styles.tarjetaDosis}>
             <View style={styles.textoDosis}>
-              <Text style={styles.nombreDosis}>{dosis.medicamento}</Text>
+              <Text style={styles.nombreDosis}>{dosis.nombre}</Text>
               <Text style={styles.detalle}>
-                {dosis.via} · {dosis.hora}
+                {dosis.via} · {formatearHora(dosis.hora)}
               </Text>
             </View>
             <Text style={styles.cantidad}>
@@ -94,7 +111,7 @@ export function AtencionActual({ onEnviada }: Props) {
       </ScrollView>
 
       <View style={styles.pie}>
-        {dosisSuministradas.length > 0 && <Boton texto="Enviar atención" onPress={enviarAtencion} />}
+        {dosisSuministradas.length > 0 && <Boton texto={enviando ? 'Enviando…' : 'Enviar atención'} onPress={enviarAtencion} deshabilitado={enviando} />}
         <Boton texto="Cancelar atención" variante="secundario" onPress={terminarAtencion} />
       </View>
     </View>

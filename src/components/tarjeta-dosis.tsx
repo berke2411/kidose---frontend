@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
 import { BotonInfo } from '@/components/boton-info';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
-import { Medicamento } from '@/data/medicamentos-ejemplo';
+import { Medicamento } from '@/data/tipos';
 import { calcularDosis, formatearNumero } from '@/utils/calcular-dosis';
 
 type Props = {
@@ -13,11 +14,30 @@ type Props = {
   onMasInfo: () => void; // la pantalla abre la ventana con la información del medicamento
   onSuministrar?: (cantidad: number) => void; // si se pasa, aparece el botón "Suministrar"
   vecesSuministrada?: number; // cuántas veces ya se suministró en esta atención
+  alergia?: string | null; // alergia del paciente que coincide con este medicamento
 };
 
 // Tarjeta con el resultado de un medicamento en la calculadora.
-export function TarjetaDosis({ medicamento, peso, onMasInfo, onSuministrar, vecesSuministrada = 0 }: Props) {
+export function TarjetaDosis({
+  medicamento,
+  peso,
+  onMasInfo,
+  onSuministrar,
+  vecesSuministrada = 0,
+  alergia = null,
+}: Props) {
   const { dosis, llegoAlMaximo } = calcularDosis(medicamento, peso);
+  // Con alergia, el primer toque pide confirmar y recién el segundo suministra
+  const [confirmando, setConfirmando] = useState(false);
+
+  function tocarSuministrar() {
+    if (alergia !== null && !confirmando) {
+      setConfirmando(true);
+      return;
+    }
+    setConfirmando(false);
+    onSuministrar?.(dosis);
+  }
 
   const colorResaltado = medicamento.esCritico ? COLORES.rojoAcento : COLORES.azulPrimario;
 
@@ -43,6 +63,12 @@ export function TarjetaDosis({ medicamento, peso, onMasInfo, onSuministrar, vece
         )}
       </View>
 
+      {alergia !== null && (
+        <View style={styles.chipMaximo}>
+          <Text style={styles.chipMaximoTexto}>ALERGIA DEL PACIENTE: {alergia.toUpperCase()}</Text>
+        </View>
+      )}
+
       <BotonInfo onPress={onMasInfo} />
 
       {onSuministrar && (
@@ -52,7 +78,11 @@ export function TarjetaDosis({ medicamento, peso, onMasInfo, onSuministrar, vece
               <Text style={styles.chipViaTexto}>SUMINISTRADA ×{vecesSuministrada}</Text>
             </View>
           )}
-          <Boton texto="Suministrar" variante="secundario" onPress={() => onSuministrar(dosis)} />
+          <Boton
+            texto={confirmando ? 'Confirmar: el paciente es alérgico' : 'Suministrar'}
+            variante="secundario"
+            onPress={tocarSuministrar}
+          />
         </View>
       )}
     </View>
@@ -115,6 +145,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   chipMaximo: {
+    alignSelf: 'flex-start',
     paddingVertical: 5,
     paddingHorizontal: 8,
     borderRadius: 6,

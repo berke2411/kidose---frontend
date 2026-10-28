@@ -1,14 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { Boton } from '@/components/boton';
 import { Encabezado } from '@/components/encabezado';
 import { ModalInfoMedicamento } from '@/components/modal-info-medicamento';
 import { TarjetaDosis } from '@/components/tarjeta-dosis';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
-import { CATEGORIAS, Medicamento, PESOS_POR_EDAD } from '@/data/medicamentos-ejemplo';
+import { PESOS_POR_EDAD } from '@/constants/pesos-por-edad';
+import { Categoria, Medicamento } from '@/data/tipos';
+import { listarCategorias } from '@/services/api';
+import { buscarAlergia } from '@/utils/alergias';
 import { formatearNumero } from '@/utils/calcular-dosis';
 import { restarPeso, sumarPeso } from '@/utils/peso';
 
@@ -19,10 +23,24 @@ export default function CalculadoraScreen() {
   const [pesoManual, setPesoManual] = useState(14);
   // Con paciente escaneado el peso sale de su ficha (y se puede corregir); sin paciente se ajusta a mano
   const peso = pacienteEscaneado ? pacienteEscaneado.pesoKg : pesoManual;
-  const [categoriaId, setCategoriaId] = useState(CATEGORIAS[0].id);
+  // Los medicamentos vienen del servidor; null mientras se cargan
+  const [categorias, setCategorias] = useState<Categoria[] | null>(null);
+  const [errorCarga, setErrorCarga] = useState('');
+  const [categoriaId, setCategoriaId] = useState<number | null>(null);
   const [medicamentoInfo, setMedicamentoInfo] = useState<Medicamento | null>(null);
 
-  const categoriaElegida = CATEGORIAS.find((categoria) => categoria.id === categoriaId);
+  const cargarCategorias = useCallback(() => {
+    listarCategorias()
+      .then(setCategorias)
+      .catch((error) => setErrorCarga(error instanceof Error ? error.message : 'No se pudieron cargar los medicamentos.'));
+  }, []);
+
+  useEffect(() => {
+    cargarCategorias();
+  }, [cargarCategorias]);
+
+  // Si todavía no se eligió categoría, se muestra la primera
+  const categoriaElegida = categorias?.find((categoria) => categoria.id === categoriaId) ?? categorias?.[0];
 
   function cambiarPeso(nuevoPeso: number) {
     if (pacienteEscaneado) {
@@ -73,8 +91,8 @@ export default function CalculadoraScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filaCategorias}>
-          {CATEGORIAS.map((categoria) => {
-            const estaActiva = categoria.id === categoriaId;
+          {categorias?.map((categoria) => {
+            const estaActiva = categoria.id === categoriaElegida?.id;
             return (
               <Pressable
                 key={categoria.id}
@@ -90,9 +108,26 @@ export default function CalculadoraScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.listaDosis}>
+        {categorias === null && errorCarga === '' && (
+          <ActivityIndicator color={COLORES.azulPrimario} style={styles.cargando} />
+        )}
+        {errorCarga !== '' && (
+          <View style={styles.errorCarga}>
+            <Text style={styles.avisoTexto}>{errorCarga}</Text>
+            <Boton
+              texto="Reintentar"
+              variante="secundario"
+              onPress={() => {
+                setErrorCarga('');
+                cargarCategorias();
+              }}
+            />
+          </View>
+        )}
+
         {categoriaElegida?.medicamentos.map((medicamento) => (
           <TarjetaDosis
-            key={medicamento.nombre}
+            key={medicamento.id}
             medicamento={medicamento}
             peso={peso}
             onMasInfo={() => setMedicamentoInfo(medicamento)}
@@ -101,16 +136,17 @@ export default function CalculadoraScreen() {
                 ? (cantidad) => suministrarDosis(medicamento, cantidad)
                 : undefined
             }
+            alergia={pacienteEscaneado ? buscarAlergia(pacienteEscaneado.alergias, medicamento) : null}
             vecesSuministrada={
-              dosisSuministradas.filter((dosis) => dosis.medicamento === medicamento.nombre).length
+              dosisSuministradas.filter((dosis) => dosis.medicamentoId === medicamento.id).length
             }
           />
         ))}
 
         <View style={styles.aviso}>
           <Text style={styles.avisoTexto}>
-            Valores de ejemplo para la maqueta: todavía no están cargados desde la fuente oficial.
-            Verificá siempre la dosis con un segundo operador antes de administrar.
+            Dosis tomadas del libro de Medicamentos en Emergencias Pediátricas (fuente única de la
+            app). Verificá siempre la dosis con un segundo operador antes de administrar.
           </Text>
         </View>
       </ScrollView>
@@ -225,6 +261,12 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
     gap: 10,
+  },
+  cargando: {
+    marginVertical: 40,
+  },
+  errorCarga: {
+    gap: 12,
   },
   aviso: {
     backgroundColor: COLORES.azulSuave,

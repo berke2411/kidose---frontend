@@ -71,7 +71,7 @@ export function nombresIguales(a: string, b: string) {
   return normalizarNombre(a) === normalizarNombre(b);
 }
 
-function normalizarNombre(nombre: string) {
+export function normalizarNombre(nombre: string) {
   const sinTildes = nombre
     .normalize('NFD') // separa la tilde de la letra
     .split('')

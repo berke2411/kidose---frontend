@@ -1,9 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { DosisSuministrada, Paciente, Usuario } from '@/data/tipos';
-import { Medicamento } from '@/data/medicamentos-ejemplo';
-import { USUARIOS } from '@/data/usuarios-ejemplo';
+import { DosisSuministrada, Medicamento, Paciente, Usuario } from '@/data/tipos';
+import { alVencerSesion, fijarToken, obtenerPaciente, obtenerUsuarioActual } from '@/services/api';
 
 // Estado compartido de la app: quién inició sesión, qué paciente escaneó el
 // médico y qué dosis se suministraron en la atención actual.
@@ -11,12 +10,13 @@ type Sesion = {
   usuario: Usuario | null;
   pacienteEscaneado: Paciente | null;
   dosisSuministradas: DosisSuministrada[];
-  iniciarSesion: (usuario: Usuario) => void;
+  iniciarSesion: (token: string, usuario: Usuario) => void;
   cerrarSesion: () => void;
+  actualizarUsuario: (usuario: Usuario) => void; // reemplaza los datos del usuario (ej: tras editar alergias)
   escanearPaciente: (paciente: Paciente) => void;
-  actualizarPeso: (pesoKg: number) => void; // corrige el peso del paciente escaneado
+  actualizarPeso: (pesoKg: number) => void; // corrige el peso del paciente escaneado (se guarda al enviar la atención)
   suministrarDosis: (medicamento: Medicamento, cantidad: number) => void;
-  quitarDosis: (id: string) => void;
+  quitarDosis: (id: number) => void;
   terminarAtencion: () => void; // limpia el paciente y las dosis (al enviar o cancelar)
 };
 
@@ -24,33 +24,43 @@ const SesionContext = createContext<Sesion | null>(null);
 
 const CLAVE_SESION = 'sesion';
 
-// En el teléfono se guardan solo los emails, no los datos ni la contraseña
-function buscarPorEmail(email: string | null) {
-  return USUARIOS.find((usuario) => usuario.email === email) ?? null;
-}
-
 export function SesionProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [pacienteEscaneado, setPacienteEscaneado] = useState<Paciente | null>(null);
   const [dosisSuministradas, setDosisSuministradas] = useState<DosisSuministrada[]>([]);
-  // Hasta terminar de leer lo guardado no se renderiza nada, para que no parpadee el login
+  const [token, setToken] = useState<string | null>(null);
+  // Hasta terminar de recuperar la sesión no se renderiza nada, para que no parpadee el login
   const [listo, setListo] = useState(false);
 
+  // Al abrir la app: con el token guardado se le pide el usuario al servidor.
+  // En el teléfono se guarda el token, el paciente que se estaba atendiendo y las dosis pendientes.
   useEffect(() => {
-    AsyncStorage.getItem(CLAVE_SESION)
-      .then((json) => {
-        if (json === null) return;
-        const guardada = JSON.parse(json);
-        const paciente = buscarPorEmail(guardada.emailPaciente);
-        setUsuario(buscarPorEmail(guardada.emailUsuario));
+    async function recuperarSesion() {
+      const json = await AsyncStorage.getItem(CLAVE_SESION);
+      if (json === null) return;
+
+      const guardada = JSON.parse(json);
+      if (!guardada.token) return;
+
+      fijarToken(guardada.token);
+      const usuarioActual = await obtenerUsuarioActual();
+      setToken(guardada.token);
+      setUsuario(usuarioActual);
+
+      if (usuarioActual.rol === 'medico' && guardada.pacienteId) {
+        const paciente = await obtenerPaciente(guardada.pacienteId);
         // El peso se guarda aparte porque el médico puede haberlo corregido
-        setPacienteEscaneado(
-          paciente?.rol === 'paciente' ? { ...paciente, pesoKg: guardada.pesoPaciente ?? paciente.pesoKg } : null
-        );
+        setPacienteEscaneado({ ...paciente, pesoKg: guardada.pesoPaciente ?? paciente.pesoKg });
         setDosisSuministradas(guardada.dosisSuministradas ?? []);
-      })
+      }
+    }
+
+    recuperarSesion()
       .catch(() => {
-        // Si lo guardado está dañado, se empieza sin sesión
+        // Sin conexión, sesión vencida o datos dañados: se empieza sin sesión
+        fijarToken(null);
+        setToken(null);
+        setUsuario(null);
       })
       .finally(() => setListo(true));
   }, []);
@@ -58,32 +68,47 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!listo) return;
     const sesionGuardada = {
-      emailUsuario: usuario?.email ?? null,
-      emailPaciente: pacienteEscaneado?.email ?? null,
+      token,
+      pacienteId: pacienteEscaneado?.id ?? null,
       pesoPaciente: pacienteEscaneado?.pesoKg ?? null,
       dosisSuministradas,
     };
     AsyncStorage.setItem(CLAVE_SESION, JSON.stringify(sesionGuardada));
-  }, [usuario, pacienteEscaneado, dosisSuministradas, listo]);
+  }, [token, pacienteEscaneado, dosisSuministradas, listo]);
 
   const terminarAtencion = useCallback(() => {
     setPacienteEscaneado(null);
     setDosisSuministradas([]);
   }, []);
 
+  const iniciarSesion = useCallback((nuevoToken: string, nuevoUsuario: Usuario) => {
+    fijarToken(nuevoToken);
+    setToken(nuevoToken);
+    setUsuario(nuevoUsuario);
+  }, []);
+
   const cerrarSesion = useCallback(() => {
+    fijarToken(null);
+    setToken(null);
     setUsuario(null);
     terminarAtencion();
   }, [terminarAtencion]);
 
+  // Si el servidor dice que el token ya no sirve, se cierra la sesión (y el layout vuelve al login)
+  useEffect(() => {
+    alVencerSesion(cerrarSesion);
+    return () => alVencerSesion(null);
+  }, [cerrarSesion]);
+
   const suministrarDosis = useCallback((medicamento: Medicamento, cantidad: number) => {
     const nueva: DosisSuministrada = {
-      id: String(Date.now()),
-      medicamento: medicamento.nombre,
+      id: Date.now(),
+      medicamentoId: medicamento.id,
+      nombre: medicamento.nombre,
       via: medicamento.via,
       cantidad,
       unidad: medicamento.unidad,
-      hora: new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }),
+      hora: new Date().toISOString(),
     };
     setDosisSuministradas((actuales) => [...actuales, nueva]);
   }, []);
@@ -92,7 +117,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     setPacienteEscaneado((actual) => (actual === null ? null : { ...actual, pesoKg }));
   }, []);
 
-  const quitarDosis = useCallback((id: string) => {
+  const quitarDosis = useCallback((id: number) => {
     setDosisSuministradas((actuales) => actuales.filter((dosis) => dosis.id !== id));
   }, []);
 
@@ -102,8 +127,9 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       usuario,
       pacienteEscaneado,
       dosisSuministradas,
-      iniciarSesion: setUsuario,
+      iniciarSesion,
       cerrarSesion,
+      actualizarUsuario: setUsuario,
       escanearPaciente: setPacienteEscaneado,
       actualizarPeso,
       suministrarDosis,
@@ -114,6 +140,7 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       usuario,
       pacienteEscaneado,
       dosisSuministradas,
+      iniciarSesion,
       cerrarSesion,
       actualizarPeso,
       suministrarDosis,

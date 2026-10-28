@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Boton } from '@/components/boton';
@@ -10,8 +10,8 @@ import { CamposDireccion } from '@/components/campos-direccion';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { DireccionVerificada, ProfesionalRegistrado } from '@/data/tipos';
-import { USUARIOS } from '@/data/usuarios-ejemplo';
-import { buscarMatricula } from '@/services/registro-matriculas';
+import { buscarMatricula, registrarCuenta } from '@/services/api';
+import { fechaDesdeTexto } from '@/utils/fechas';
 import {
   nombresIguales,
   validarContrasena,
@@ -23,6 +23,7 @@ import {
 
 // Registro de una cuenta nueva, de médico o de paciente.
 // Al médico se le verifica la matrícula en tiempo real y que coincida con su nombre y DNI.
+// La cuenta se crea en el servidor, que vuelve a validar todo.
 export default function SolicitarCuentaScreen() {
   const insets = useSafeAreaInsets();
   const [rol, setRol] = useState<'medico' | 'paciente'>('medico');
@@ -32,6 +33,10 @@ export default function SolicitarCuentaScreen() {
   const [matricula, setMatricula] = useState('');
   const [hospital, setHospital] = useState('');
   const [contrasena, setContrasena] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
+  const [peso, setPeso] = useState('');
+  const [alergias, setAlergias] = useState('');
+  const [enviando, setEnviando] = useState(false);
   // Dirección confirmada por Georef (solo pacientes); null mientras no esté confirmada
   const [direccion, setDireccion] = useState<DireccionVerificada | null>(null);
   const [intentoEnviar, setIntentoEnviar] = useState(false);
@@ -44,6 +49,9 @@ export default function SolicitarCuentaScreen() {
     profesional: ProfesionalRegistrado | null;
   } | null>(null);
 
+  // Matrícula cuya verificación falló por un problema de conexión (null = ninguna)
+  const [matriculaSinConexion, setMatriculaSinConexion] = useState<string | null>(null);
+
   const matriculaConFormatoValido = validarMatricula(matricula) === null;
 
   // "cancelado" evita usar una respuesta vieja si el usuario siguió escribiendo
@@ -51,18 +59,26 @@ export default function SolicitarCuentaScreen() {
     if (!matriculaConFormatoValido) return;
 
     let cancelado = false;
-    buscarMatricula(matricula).then((profesional) => {
-      if (!cancelado) setConsulta({ matricula, profesional });
-    });
+    buscarMatricula(matricula)
+      .then((profesional) => {
+        if (!cancelado) setConsulta({ matricula, profesional });
+      })
+      .catch(() => {
+        if (!cancelado) setMatriculaSinConexion(matricula);
+      });
     return () => {
       cancelado = true;
     };
   }, [matricula, matriculaConFormatoValido]);
 
   const respuestaEsActual = matriculaConFormatoValido && consulta?.matricula === matricula;
-  const buscando = matriculaConFormatoValido && !respuestaEsActual;
+  const fallo = matriculaSinConexion === matricula;
+  const buscando = matriculaConFormatoValido && !respuestaEsActual && !fallo;
   // profesional: datos del registro; null = no existe; undefined = todavía sin respuesta
   const profesional = respuestaEsActual ? consulta.profesional : undefined;
+
+  // El peso se escribe con coma o punto (ej: 14,5)
+  const pesoNumerico = Number(peso.trim().replace(',', '.'));
 
   // Error de cada campo (null = está bien)
   const errores = {
@@ -76,19 +92,22 @@ export default function SolicitarCuentaScreen() {
       (esMedico && profesional && dni.trim() !== profesional.dni
         ? 'El DNI no coincide con el de la matrícula.'
         : null),
-    email:
-      validarEmail(email) ??
-      (USUARIOS.some((usuario) => usuario.email === email.trim().toLowerCase())
-        ? 'Ya existe una cuenta con este email.'
-        : null),
+    email: validarEmail(email),
+    fechaNacimiento:
+      !esMedico && fechaDesdeTexto(fechaNacimiento) === null
+        ? 'Ingresá una fecha válida. Ej: 15/07/2023'
+        : null,
+    peso: !esMedico && !(pesoNumerico >= 2 && pesoNumerico <= 80) ? 'Ingresá un peso entre 2 y 80 kg.' : null,
     hospital: esMedico && hospital.trim() === '' ? 'Ingresá tu hospital o institución.' : null,
     matricula: esMedico
       ? (validarMatricula(matricula) ??
-        (buscando
-          ? 'Esperá a que termine la verificación.'
-          : profesional === null
-            ? 'Esta matrícula no figura en el registro.'
-            : null))
+        (fallo
+          ? 'No se pudo verificar la matrícula. Revisá tu conexión.'
+          : buscando
+            ? 'Esperá a que termine la verificación.'
+            : profesional === null
+              ? 'Esta matrícula no figura en el registro.'
+              : null))
       : null,
     contrasena: validarContrasena(contrasena),
     direccion: !esMedico && direccion === null ? 'Falta verificar la dirección.' : null,
@@ -103,18 +122,55 @@ export default function SolicitarCuentaScreen() {
   // Excepción: que la matrícula no exista se avisa apenas se escribe (tiempo real)
   const errorMatricula = intentoEnviar
     ? (errores.matricula ?? undefined)
-    : profesional === null
-      ? 'Esta matrícula no figura en el registro.'
-      : undefined;
+    : fallo
+      ? 'No se pudo verificar la matrícula. Revisá tu conexión.'
+      : profesional === null
+        ? 'Esta matrícula no figura en el registro.'
+        : undefined;
 
   let mensajeMatricula: string | undefined;
   if (buscando) mensajeMatricula = 'Verificando matrícula…';
   else if (profesional) mensajeMatricula = `Matrícula verificada · ${profesional.especialidad}`;
 
-  function enviarSolicitud() {
+  async function enviarSolicitud() {
     setIntentoEnviar(true);
     if (hayErrores) return;
-    router.replace({ pathname: '/solicitud-enviada', params: { rol } });
+
+    setEnviando(true);
+    try {
+      if (esMedico) {
+        await registrarCuenta({
+          rol,
+          nombre: nombre.trim(),
+          dni: dni.trim(),
+          email: email.trim().toLowerCase(),
+          contrasena,
+          matricula: matricula.trim(),
+          hospital: hospital.trim(),
+        });
+      } else {
+        await registrarCuenta({
+          rol,
+          nombre: nombre.trim(),
+          dni: dni.trim(),
+          email: email.trim().toLowerCase(),
+          contrasena,
+          fechaNacimiento: fechaDesdeTexto(fechaNacimiento) ?? undefined,
+          pesoKg: pesoNumerico,
+          // Las alergias se escriben separadas por comas
+          alergias: alergias.split(',').map((alergia) => alergia.trim()).filter((alergia) => alergia !== ''),
+          direccion: direccion?.direccion,
+          latitud: direccion?.latitud,
+          longitud: direccion?.longitud,
+        });
+      }
+      router.replace({ pathname: '/solicitud-enviada', params: { rol } });
+    } catch (error) {
+      // Por ejemplo: ya existe una cuenta con ese email o DNI
+      Alert.alert('No se pudo crear la cuenta', error instanceof Error ? error.message : 'Intentá de nuevo.');
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -186,7 +242,35 @@ export default function SolicitarCuentaScreen() {
             teclado="email-address"
             error={verError(errores.email)}
           />
-          {!esMedico && <CamposDireccion mostrarErrores={intentoEnviar} onCambio={setDireccion} />}
+          {!esMedico && (
+            <>
+              <CampoTexto
+                etiqueta="FECHA DE NACIMIENTO"
+                placeholder="dd/mm/aaaa"
+                value={fechaNacimiento}
+                onChangeText={setFechaNacimiento}
+                teclado="numbers-and-punctuation"
+                error={verError(errores.fechaNacimiento)}
+              />
+              <CampoTexto
+                etiqueta="PESO (KG)"
+                placeholder="Ej: 14,5"
+                value={peso}
+                onChangeText={setPeso}
+                teclado="decimal-pad"
+                error={verError(errores.peso)}
+                mensaje="El médico lo puede corregir al atenderte."
+              />
+              <CampoTexto
+                etiqueta="ALERGIAS (OPCIONAL)"
+                placeholder="Ej: Penicilina, Látex"
+                value={alergias}
+                onChangeText={setAlergias}
+                mensaje="Separalas con comas."
+              />
+              <CamposDireccion mostrarErrores={intentoEnviar} onCambio={setDireccion} />
+            </>
+          )}
           {esMedico && (
             <CampoTexto
               etiqueta="HOSPITAL / INSTITUCIÓN"
@@ -208,7 +292,11 @@ export default function SolicitarCuentaScreen() {
           />
         </View>
 
-        <Boton texto={esMedico ? 'Enviar solicitud' : 'Crear cuenta'} onPress={enviarSolicitud} />
+        <Boton
+          texto={enviando ? 'Enviando…' : esMedico ? 'Enviar solicitud' : 'Crear cuenta'}
+          onPress={enviarSolicitud}
+          deshabilitado={enviando}
+        />
 
         {esMedico && (
           <Text style={styles.aclaracion}>

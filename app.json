@@ -26,13 +26,20 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Kidose usa la cámara para leer el QR del paciente."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#0B5394",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

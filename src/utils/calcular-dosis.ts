@@ -1,4 +1,4 @@
-import { Medicamento } from '@/data/medicamentos-ejemplo';
+import { Medicamento } from '@/data/tipos';
 
 // Calcula la dosis según el peso: peso × dosis por kg.
 // Si el resultado supera la dosis máxima, se usa la dosis máxima.
@@ -6,7 +6,7 @@ export function calcularDosis(medicamento: Medicamento, peso: number) {
   let dosis = peso * medicamento.dosisPorKg;
   let llegoAlMaximo = false;
 
-  if (medicamento.dosisMaxima !== undefined && dosis >= medicamento.dosisMaxima) {
+  if (medicamento.dosisMaxima !== null && dosis >= medicamento.dosisMaxima) {
     dosis = medicamento.dosisMaxima;
     llegoAlMaximo = true;
   }

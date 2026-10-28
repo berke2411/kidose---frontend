@@ -1,29 +1,12 @@
-// Tipos de datos compartidos por las pantallas de médico y paciente.
-
-// Una dosis que un médico suministró (o va a suministrar) en una atención.
-export type DosisSuministrada = {
-  id: string;
-  medicamento: string;
-  via: string;
-  cantidad: number;
-  unidad: string;
-  hora: string; // ej: "14:32"
-};
-
-// Una atención ya realizada: aparece en el historial del paciente.
-export type Atencion = {
-  id: string;
-  fecha: string; // ej: "12/08/2026"
-  medico: string;
-  lugar: string;
-  dosis: DosisSuministrada[];
-};
+// Tipos de datos compartidos por las pantallas. Los nombres de los campos son
+// exactamente los de la API (y los de los modelos de Prisma del backend).
 
 export type Medico = {
   rol: 'medico';
+  id: number;
+  estado: string; // pendiente, aprobada o rechazada
   nombre: string;
   email: string;
-  contrasena: string;
   dni: string;
   matricula: string;
   especialidad: string;
@@ -32,20 +15,72 @@ export type Medico = {
 
 export type Paciente = {
   rol: 'paciente';
+  id: number;
+  estado: string;
   nombre: string;
   email: string;
-  contrasena: string;
   dni: string;
-  edad: string; // ej: "3 años"
+  fechaNacimiento: string; // fecha ISO, ej: "2023-07-15T12:00:00.000Z"
   direccion: string; // dirección normalizada, ej: "AV SANTA FE 1234, Comuna 1, Ciudad Autónoma de Buenos Aires"
   pesoKg: number;
   alergias: string[];
-  historial: Atencion[];
 };
 
-export type Usuario = Medico | Paciente;
+export type Admin = {
+  rol: 'admin';
+  id: number;
+  estado: string;
+  nombre: string;
+  email: string;
+  dni: string;
+};
 
-// Un profesional tal como figuraría en el registro oficial de matrículas.
+export type Usuario = Medico | Paciente | Admin;
+
+// Un medicamento del catálogo, con la dosis por kg del libro de la fuente única.
+export type Medicamento = {
+  id: number;
+  nombre: string;
+  principioActivo: string; // nombre del principio activo en CIMA (en minúscula)
+  viaCima: string; // vía de administración tal como figura en CIMA, para elegir la presentación correcta
+  via: string; // vía de administración (IV, IM, etc.)
+  dosisPorKg: number; // cantidad por cada kg de peso
+  dosisMaxima: number | null; // tope: nunca se supera (null si el libro no trae uno)
+  unidad: string; // mg, ml, mcg...
+  nota: string;
+  esCritico: boolean; // si es true se resalta en rojo
+};
+
+export type Categoria = {
+  id: number;
+  clave: string;
+  nombre: string;
+  medicamentos: Medicamento[];
+};
+
+// Una dosis que el médico suministró (o va a suministrar) en una atención.
+export type DosisSuministrada = {
+  id: number;
+  medicamentoId: number;
+  nombre: string;
+  via: string;
+  cantidad: number;
+  unidad: string;
+  hora: string; // fecha ISO
+  medicamento?: Medicamento; // la API lo manda en el historial
+};
+
+// Una atención ya realizada: aparece en el historial del paciente.
+export type Atencion = {
+  id: number;
+  fecha: string; // fecha ISO
+  lugar: string;
+  pesoKg: number;
+  medico: { id: number; nombre: string };
+  dosis: DosisSuministrada[];
+};
+
+// Un profesional tal como figura en el registro de matrículas.
 export type ProfesionalRegistrado = {
   matricula: string;
   nombre: string;
