@@ -10,12 +10,10 @@ import { buscarLocalidades, listarProvincias, verificarDireccion } from '@/servi
 import { validarDireccion } from '@/utils/validaciones';
 
 type Props = {
-  mostrarErrores: boolean; // true después de apretar "Crear cuenta"
-  onCambio: (direccion: DireccionVerificada | null) => void; // avisa la dirección confirmada (o null)
+  mostrarErrores: boolean;
+  onCambio: (direccion: DireccionVerificada | null) => void;
 };
 
-// Provincia + localidad + calle y altura, verificadas con la API Georef.
-// Solo avisa hacia afuera cuando la dirección está confirmada.
 export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
   const [provincias, setProvincias] = useState<OpcionGeoref[]>([]);
   const [falloProvincias, setFalloProvincias] = useState(false);
@@ -45,7 +43,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
 
   function tocarSelectorProvincia() {
     if (falloProvincias) {
-      // reintenta la carga si había fallado
       setFalloProvincias(false);
       listarProvincias()
         .then(setProvincias)
@@ -58,14 +55,13 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
   function elegirProvincia(opcion: OpcionGeoref) {
     setProvincia(opcion);
     setListaAbierta(false);
-    // La localidad depende de la provincia: se borra
     setLocalidad(null);
     setLocalidadTexto('');
   }
 
   function escribirLocalidad(texto: string) {
     setLocalidadTexto(texto);
-    setLocalidad(null); // hasta que elija una sugerencia, no hay localidad confirmada
+    setLocalidad(null);
   }
 
   function elegirLocalidad(opcion: OpcionGeoref) {
@@ -73,7 +69,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
     setLocalidadTexto(opcion.nombre);
   }
 
-  // Se busca 400 ms después de la última tecla
   const busquedaLocalidad = localidadTexto.trim();
   // Georef solo encuentra localidades con 4 letras o más
   const debeBuscarLocalidades = provincia !== null && localidad === null && busquedaLocalidad.length >= 4;
@@ -82,7 +77,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
   useEffect(() => {
     if (!debeBuscarLocalidades || provincia === null) return;
 
-    // "cancelado" evita usar una respuesta vieja si el usuario siguió escribiendo
     let cancelado = false;
     const espera = setTimeout(() => {
       buscarLocalidades(provincia.id, busquedaLocalidad)
@@ -104,7 +98,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
     debeBuscarLocalidades && sugerencias?.clave === claveLocalidades ? sugerencias : null;
   const buscandoLocalidades = debeBuscarLocalidades && sugerenciasActuales === null;
 
-  // Se verifica 600 ms después de la última tecla
   const direccionLimpia = direccionTexto.trim();
   const errorFormato = validarDireccion(direccionLimpia);
   const puedeVerificar = provincia !== null && localidad !== null && errorFormato === null;
@@ -134,7 +127,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
   const verificando = puedeVerificar && consultaActual === null;
   const verificada = consultaActual?.direccion ?? null;
 
-  // Avisa a la pantalla de registro cuando la dirección queda confirmada (o deja de estarlo)
   useEffect(() => {
     onCambio(verificada);
   }, [verificada, onCambio]);

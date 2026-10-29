@@ -6,8 +6,6 @@ import { Boton } from '@/components/boton';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 
-// Confirmación del registro. El médico queda pendiente hasta que un admin lo apruebe;
-// el paciente ya puede ingresar.
 export default function SolicitudEnviadaScreen() {
   const { rol } = useLocalSearchParams<{ rol: string }>();
   const esMedico = rol === 'medico';

@@ -1,23 +1,33 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { DosisSuministrada, Medicamento, Paciente, Usuario } from '@/data/tipos';
-import { alVencerSesion, fijarToken, obtenerPaciente, obtenerUsuarioActual } from '@/services/api';
+import { PantallaBloqueo } from '@/components/pantalla-bloqueo';
+import { DosisSuministrada, ItemLibro, Paciente, Usuario } from '@/data/tipos';
+import {
+  actualizarPesoPaciente,
+  alVencerSesion,
+  fijarToken,
+  obtenerPaciente,
+  obtenerUsuarioActual,
+} from '@/services/api';
+import { confirmarIdentidad } from '@/services/biometria';
 
-// Estado compartido de la app: quién inició sesión, qué paciente escaneó el
-// médico y qué dosis se suministraron en la atención actual.
+type DosisDeLibro = Pick<ItemLibro, 'medicamentoId' | 'nombre' | 'via' | 'unidad'>;
+
 type Sesion = {
   usuario: Usuario | null;
   pacienteEscaneado: Paciente | null;
+  pesoGuardado: number | null;
   dosisSuministradas: DosisSuministrada[];
   iniciarSesion: (token: string, usuario: Usuario) => void;
   cerrarSesion: () => void;
-  actualizarUsuario: (usuario: Usuario) => void; // reemplaza los datos del usuario (ej: tras editar alergias)
+  actualizarUsuario: (usuario: Usuario) => void;
   escanearPaciente: (paciente: Paciente) => void;
-  actualizarPeso: (pesoKg: number) => void; // corrige el peso del paciente escaneado (se guarda al enviar la atención)
-  suministrarDosis: (medicamento: Medicamento, cantidad: number) => void;
+  actualizarPeso: (pesoKg: number) => void;
+  guardarPeso: () => Promise<void>;
+  suministrarDosis: (item: DosisDeLibro, cantidad: number) => void;
   quitarDosis: (id: number) => void;
-  terminarAtencion: () => void; // limpia el paciente y las dosis (al enviar o cancelar)
+  terminarAtencion: () => void;
 };
 
 const SesionContext = createContext<Sesion | null>(null);
@@ -27,13 +37,16 @@ const CLAVE_SESION = 'sesion';
 export function SesionProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [pacienteEscaneado, setPacienteEscaneado] = useState<Paciente | null>(null);
+  const [pesoGuardado, setPesoGuardado] = useState<number | null>(null);
   const [dosisSuministradas, setDosisSuministradas] = useState<DosisSuministrada[]>([]);
   const [token, setToken] = useState<string | null>(null);
-  // Hasta terminar de recuperar la sesión no se renderiza nada, para que no parpadee el login
   const [listo, setListo] = useState(false);
+  const [bloqueada, setBloqueada] = useState(false);
 
-  // Al abrir la app: con el token guardado se le pide el usuario al servidor.
-  // En el teléfono se guarda el token, el paciente que se estaba atendiendo y las dosis pendientes.
+  const desbloquear = useCallback(async () => {
+    if (await confirmarIdentidad()) setBloqueada(false);
+  }, []);
+
   useEffect(() => {
     async function recuperarSesion() {
       const json = await AsyncStorage.getItem(CLAVE_SESION);
@@ -46,13 +59,16 @@ export function SesionProvider({ children }: { children: ReactNode }) {
       const usuarioActual = await obtenerUsuarioActual();
       setToken(guardada.token);
       setUsuario(usuarioActual);
+      setBloqueada(true);
 
       if (usuarioActual.rol === 'medico' && guardada.pacienteId) {
         const paciente = await obtenerPaciente(guardada.pacienteId);
-        // El peso se guarda aparte porque el médico puede haberlo corregido
+        setPesoGuardado(paciente.pesoKg);
         setPacienteEscaneado({ ...paciente, pesoKg: guardada.pesoPaciente ?? paciente.pesoKg });
         setDosisSuministradas(guardada.dosisSuministradas ?? []);
       }
+
+      desbloquear();
     }
 
     recuperarSesion()
@@ -61,9 +77,10 @@ export function SesionProvider({ children }: { children: ReactNode }) {
         fijarToken(null);
         setToken(null);
         setUsuario(null);
+        setBloqueada(false);
       })
       .finally(() => setListo(true));
-  }, []);
+  }, [desbloquear]);
 
   useEffect(() => {
     if (!listo) return;
@@ -78,8 +95,20 @@ export function SesionProvider({ children }: { children: ReactNode }) {
 
   const terminarAtencion = useCallback(() => {
     setPacienteEscaneado(null);
+    setPesoGuardado(null);
     setDosisSuministradas([]);
   }, []);
+
+  const escanearPaciente = useCallback((paciente: Paciente) => {
+    setPacienteEscaneado(paciente);
+    setPesoGuardado(paciente.pesoKg);
+  }, []);
+
+  const guardarPeso = useCallback(async () => {
+    if (pacienteEscaneado === null) return;
+    const actualizado = await actualizarPesoPaciente(pacienteEscaneado.id, pacienteEscaneado.pesoKg);
+    setPesoGuardado(actualizado.pesoKg);
+  }, [pacienteEscaneado]);
 
   const iniciarSesion = useCallback((nuevoToken: string, nuevoUsuario: Usuario) => {
     fijarToken(nuevoToken);
@@ -91,23 +120,23 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     fijarToken(null);
     setToken(null);
     setUsuario(null);
+    setBloqueada(false);
     terminarAtencion();
   }, [terminarAtencion]);
 
-  // Si el servidor dice que el token ya no sirve, se cierra la sesión (y el layout vuelve al login)
   useEffect(() => {
     alVencerSesion(cerrarSesion);
     return () => alVencerSesion(null);
   }, [cerrarSesion]);
 
-  const suministrarDosis = useCallback((medicamento: Medicamento, cantidad: number) => {
+  const suministrarDosis = useCallback((item: DosisDeLibro, cantidad: number) => {
     const nueva: DosisSuministrada = {
       id: Date.now(),
-      medicamentoId: medicamento.id,
-      nombre: medicamento.nombre,
-      via: medicamento.via,
+      medicamentoId: item.medicamentoId,
+      nombre: item.nombre,
+      via: item.via,
       cantidad,
-      unidad: medicamento.unidad,
+      unidad: item.unidad,
       hora: new Date().toISOString(),
     };
     setDosisSuministradas((actuales) => [...actuales, nueva]);
@@ -121,17 +150,18 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     setDosisSuministradas((actuales) => actuales.filter((dosis) => dosis.id !== id));
   }, []);
 
-  // Sin useMemo, cada render del Provider crea un objeto nuevo y re-renderiza a todos los consumidores
   const value = useMemo<Sesion>(
     () => ({
       usuario,
       pacienteEscaneado,
+      pesoGuardado,
       dosisSuministradas,
       iniciarSesion,
       cerrarSesion,
       actualizarUsuario: setUsuario,
-      escanearPaciente: setPacienteEscaneado,
+      escanearPaciente,
       actualizarPeso,
+      guardarPeso,
       suministrarDosis,
       quitarDosis,
       terminarAtencion,
@@ -139,10 +169,13 @@ export function SesionProvider({ children }: { children: ReactNode }) {
     [
       usuario,
       pacienteEscaneado,
+      pesoGuardado,
       dosisSuministradas,
       iniciarSesion,
       cerrarSesion,
+      escanearPaciente,
       actualizarPeso,
+      guardarPeso,
       suministrarDosis,
       quitarDosis,
       terminarAtencion,
@@ -150,6 +183,10 @@ export function SesionProvider({ children }: { children: ReactNode }) {
   );
 
   if (!listo) return null;
+
+  if (bloqueada) {
+    return <PantallaBloqueo alReintentar={desbloquear} alUsarContrasena={cerrarSesion} />;
+  }
 
   return <SesionContext.Provider value={value}>{children}</SesionContext.Provider>;
 }

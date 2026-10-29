@@ -1,7 +1,5 @@
 import { DireccionVerificada, OpcionGeoref } from '@/data/tipos';
 
-// Georef: API pública del Estado argentino (datos.gob.ar) con provincias, localidades
-// y direcciones. No necesita clave. Si falla la conexión, las funciones lanzan un error.
 const URL_BASE = 'https://apis.datos.gob.ar/georef/api';
 
 async function pedir(ruta: string, parametros: Record<string, string>) {
@@ -21,8 +19,6 @@ export async function listarProvincias(): Promise<OpcionGeoref[]> {
   return datos.provincias;
 }
 
-// Localidades de una provincia cuyo nombre empieza como el texto escrito.
-// Incluye barrios (ej: Caballito), que las "localidades censales" no traen.
 export async function buscarLocalidades(provinciaId: string, texto: string): Promise<OpcionGeoref[]> {
   const datos = await pedir('localidades', {
     provincia: provinciaId,
@@ -46,9 +42,6 @@ export async function buscarLocalidades(provinciaId: string, texto: string): Pro
   return opciones;
 }
 
-// Comprueba que la dirección exista en el departamento de esa localidad
-// (en Capital Federal, la comuna del barrio).
-// Devuelve la dirección normalizada, o null si Georef no la encuentra.
 export async function verificarDireccion(
   direccion: string,
   provincia: OpcionGeoref,

@@ -8,14 +8,13 @@ type Props = {
   placeholder: string;
   value: string;
   onChangeText: (texto: string) => void;
-  esContrasena?: boolean; // si es true, oculta lo que se escribe
-  teclado?: KeyboardTypeOptions; // ej: 'email-address', 'number-pad'
-  mayusculas?: boolean; // true para nombres (primera letra de cada palabra en mayúscula)
-  error?: string; // mensaje en rojo debajo del campo
-  mensaje?: string; // aviso en gris debajo del campo (si no hay error)
+  esContrasena?: boolean;
+  teclado?: KeyboardTypeOptions;
+  mayusculas?: boolean;
+  error?: string;
+  mensaje?: string;
 };
 
-// Campo de formulario: etiqueta arriba, caja de texto y mensaje opcional abajo.
 export function CampoTexto({
   etiqueta,
   placeholder,

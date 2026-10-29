@@ -10,11 +10,8 @@ import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { pedirCodigoQr } from '@/services/api';
 
-// El código vence a los 5 minutos: se pide uno nuevo un poco antes
 const RENOVAR_CADA_MS = 4 * 60 * 1000;
 
-// Pestaña central del paciente: su QR para que el médico lo escanee.
-// El QR lleva un código aleatorio que el servidor genera y que vence solo.
 export default function MiQrScreen() {
   const { usuario } = useSesion();
   const [codigo, setCodigo] = useState<string | null>(null);
@@ -27,7 +24,6 @@ export default function MiQrScreen() {
       .catch((e) => setError(e instanceof Error ? e.message : 'No se pudo generar el QR.'));
   }, []);
 
-  // Mientras la pestaña está a la vista se renueva el código cada pocos minutos
   useFocusEffect(
     useCallback(() => {
       pedirCodigo();

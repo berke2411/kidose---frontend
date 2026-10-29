@@ -7,11 +7,10 @@ import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 
 type Props = {
-  etiqueta: string; // texto chico a la derecha (ej: "QR")
-  children?: ReactNode; // contenido extra debajo del logo (opcional)
+  etiqueta: string;
+  children?: ReactNode;
 };
 
-// Barra azul superior que comparten las pantallas principales.
 export function Encabezado({ etiqueta, children }: Props) {
   const insets = useSafeAreaInsets();
 

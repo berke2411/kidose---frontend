@@ -1,3 +1,4 @@
+import { File } from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
@@ -8,9 +9,6 @@ import { listarAtenciones } from '@/services/api';
 import { formatearNumero } from '@/utils/calcular-dosis';
 import { calcularEdad, formatearFecha, formatearHora } from '@/utils/fechas';
 
-// Exporta la historia clínica de un paciente como PDF con la marca de Kidose.
-// Los datos se piden al servidor en el momento, para que el PDF tenga siempre lo último guardado.
-
 // Los textos van dentro de HTML: se reemplazan los caracteres que tienen significado especial
 function escapar(texto: string) {
   return texto
@@ -20,7 +18,16 @@ function escapar(texto: string) {
     .split('"').join('&quot;');
 }
 
-function armarHtml(paciente: Paciente, atenciones: Atencion[]) {
+function armarTitulo(paciente: Paciente) {
+  let nombre = paciente.nombre;
+  for (const prohibido of ['/', '\\', ':', '*', '?', '"', '<', '>', '|']) {
+    nombre = nombre.split(prohibido).join('');
+  }
+  const fecha = new Date().toISOString().slice(0, 10);
+  return `Historia clínica - ${nombre.trim()} - ${fecha}`;
+}
+
+function armarHtml(paciente: Paciente, atenciones: Atencion[], titulo: string) {
   const ahora = new Date().toISOString();
 
   const alergias =
@@ -37,7 +44,7 @@ function armarHtml(paciente: Paciente, atenciones: Atencion[]) {
               .map(
                 (dosis) => `
                 <tr>
-                  <td class="medicamento">${escapar(dosis.nombre)}</td>
+                  <td class="medicamento">${escapar(dosis.nombre)}${dosis.detalle ? `<div class="indicado">${escapar(dosis.detalle)}</div>` : ''}</td>
                   <td>${escapar(dosis.via)}</td>
                   <td>${formatearHora(dosis.hora)}</td>
                   <td class="cantidad">${formatearNumero(dosis.cantidad)} ${escapar(dosis.unidad)}</td>
@@ -61,6 +68,7 @@ function armarHtml(paciente: Paciente, atenciones: Atencion[]) {
 <html lang="es">
 <head>
 <meta charset="utf-8" />
+<title>${escapar(titulo)}</title>
 <style>
   * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { margin: 0; font-family: Helvetica, Arial, sans-serif; color: ${COLORES.texto}; background: ${COLORES.blanco}; font-size: 12px; }
@@ -90,6 +98,7 @@ function armarHtml(paciente: Paciente, atenciones: Atencion[]) {
   th { text-align: left; font-size: 9px; letter-spacing: 1px; color: ${COLORES.gris}; padding: 5px 0; border-bottom: 1px solid ${COLORES.divisor}; }
   td { padding: 6px 0; border-bottom: 1px solid ${COLORES.divisor}; }
   .medicamento { font-weight: bold; }
+  .indicado { font-weight: normal; font-size: 9px; color: ${COLORES.gris}; margin-top: 2px; }
   .cantidad { text-align: right; font-weight: bold; color: ${COLORES.azulPrimario}; }
   th.cantidad { color: ${COLORES.gris}; }
   .pie { margin-top: 24px; padding-top: 10px; border-top: 1px solid ${COLORES.divisor}; font-size: 9px; color: ${COLORES.gris}; line-height: 1.5; }
@@ -133,11 +142,10 @@ function armarHtml(paciente: Paciente, atenciones: Atencion[]) {
 </html>`;
 }
 
-// Pide las atenciones, arma el PDF y abre el menú para compartirlo o guardarlo.
-// En la web se abre el diálogo de impresión del navegador con el documento (ahí se elige "Guardar como PDF").
 export async function exportarHistorial(paciente: Paciente) {
   const atenciones = await listarAtenciones(paciente.id);
-  const html = armarHtml(paciente, atenciones);
+  const titulo = armarTitulo(paciente);
+  const html = armarHtml(paciente, atenciones, titulo);
 
   if (Platform.OS === 'web') {
     const ventana = window.open('', '_blank');
@@ -151,15 +159,18 @@ export async function exportarHistorial(paciente: Paciente) {
     return;
   }
 
-  // Tamaño A4 en puntos (595 × 842)
   const { uri } = await Print.printToFileAsync({ html, width: 595, height: 842 });
+
+  // expo-print le pone un nombre al azar
+  const archivo = new File(uri);
+  archivo.rename(`${titulo}.pdf`);
 
   if (!(await Sharing.isAvailableAsync())) {
     throw new Error('Este dispositivo no permite compartir archivos.');
   }
-  await Sharing.shareAsync(uri, {
+  await Sharing.shareAsync(archivo.uri, {
     mimeType: 'application/pdf',
-    dialogTitle: 'Historia clínica',
+    dialogTitle: titulo,
     UTI: 'com.adobe.pdf',
   });
 }

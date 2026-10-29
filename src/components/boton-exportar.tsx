@@ -7,8 +7,6 @@ import { FUENTES } from '@/constants/tipografia';
 import { Paciente } from '@/data/tipos';
 import { exportarHistorial } from '@/services/exportar-historial';
 
-// Botón que genera el PDF de la historia clínica de un paciente.
-// Si algo falla, el mensaje aparece debajo del botón.
 export function BotonExportar({ paciente }: { paciente: Paciente }) {
   const [exportando, setExportando] = useState(false);
   const [error, setError] = useState('');

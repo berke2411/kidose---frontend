@@ -12,17 +12,14 @@ import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { leerCodigoQr } from '@/services/api';
 
-// Lo que viene antes del código en el QR del paciente (así se ignoran otros QR)
 const PREFIJO_QR = 'kidose:';
 
-// Pestaña izquierda del médico: lector de QR, o la atención actual si ya hay un paciente escaneado.
 export default function EscanearScreen() {
   const { pacienteEscaneado, escanearPaciente } = useSesion();
   const [permiso, pedirPermiso] = useCameraPermissions();
   const [atencionEnviada, setAtencionEnviada] = useState(false);
   const [error, setError] = useState('');
   const [consultando, setConsultando] = useState(false);
-  // La cámara solo se enciende con la pestaña a la vista (solo puede haber una cámara activa)
   const [camaraActiva, setCamaraActiva] = useState(false);
   // La cámara avisa muchas veces por el mismo QR: con esto se procesa uno a la vez
   const leyendo = useRef(false);
@@ -55,7 +52,6 @@ export default function EscanearScreen() {
       setError(e instanceof Error ? e.message : 'No se pudo leer el código.');
     } finally {
       setConsultando(false);
-      // Se espera un momento antes de aceptar otro QR, para no repetir el mismo error sin parar
       setTimeout(() => {
         leyendo.current = false;
       }, 1500);

@@ -37,10 +37,10 @@ Para probar el registro de un médico: matrícula 345678 · Sofía Acosta · DNI
 **Médico**
 - Escanea con la cámara el QR de un paciente y ve su atención actual con peso, edad y alergias.
 - Puede corregir el peso del paciente si cambió; se guarda al enviar la atención.
-- Calculadora de dosis por peso, con los medicamentos del backend, dosis máxima y botón para suministrar.
-- Si una alergia del paciente coincide con el nombre o el principio activo de un medicamento, la tarjeta muestra una alerta en rojo y "Suministrar" pide confirmar antes de registrar la dosis (`utils/alergias.ts`).
+- Calculadora con las tablas del libro: el peso solo puede ser el de una tabla (los botones recorren los pesos del libro y lo que se escribe se redondea hacia abajo), muestra lo que indica el libro para ese peso (dosis, preparación, volumen a administrar) y un botón para suministrar. "Otras indicaciones" trae lo que el libro tiene fuera de las tablas por peso (algoritmos, sedación, analgesia, etc.).
+- Las alergias se eligen de una lista con las sustancias que menciona el libro (no se puede escribir cualquier cosa); si una alergia no está en la lista, no afecta a ninguna dosis. Si una alergia del paciente coincide con el principio activo o el nombre de una indicación, la tarjeta muestra una alerta en rojo y "Suministrar" pide confirmar antes de registrar la dosis (`utils/alergias.ts`).
 - Exporta en PDF la historia clínica del paciente que está atendiendo (para llevarla a otra clínica).
-- "Enviar atención" guarda las dosis en el servidor, que revalida que ninguna supere lo que da el peso.
+- "Enviar atención" guarda las dosis en el servidor, que revalida que cada dosis esté dentro de lo que el libro indica para ese peso.
 - "Más info" en cada medicamento: contraindicaciones de la ficha técnica.
 
 **Paciente**
@@ -68,7 +68,7 @@ src/
   context/      sesion.tsx: estado compartido de la app
   data/         tipos (los mismos campos que devuelve la API)
   services/     api.ts (backend de Kidose), georef.ts y cima.ts (APIs públicas), exportar-historial.ts (PDF)
-  utils/        funciones puras (cálculo de dosis, validaciones, peso, fechas)
+  utils/        funciones puras (validaciones, peso, fechas)
 ```
 
 ## Decisiones de diseño
@@ -76,6 +76,8 @@ src/
 - **Un solo Context (`SesionProvider`)** para lo que comparten varias pantallas: quién inició sesión, el paciente escaneado y las dosis suministradas. El resto del estado es local de cada pantalla (`useState`).
 - **El `value` del Provider va con `useMemo`** y sus funciones con `useCallback`, para que las pantallas no se rendericen de nuevo si nada cambió.
 - **AsyncStorage** guarda el token de la sesión, el paciente que se está atendiendo y las dosis todavía sin enviar. Al abrir la app el usuario se pide al servidor (`GET /api/auth/yo`); nunca se guarda la contraseña.
+- **expo-local-authentication** pide huella o Face ID cada vez que se reabre la app con una sesión guardada; si falla, se puede entrar con la contraseña.
+- **Exportar PDF**: el archivo se llama "Historia clínica - Paciente - fecha" y se comparte con expo-sharing.
 - **Las listas se vuelven a pedir al servidor** después de cada escritura o al entrar a una pestaña: la fuente de verdad es la base de datos, no el estado local.
 - **Valores derivados no se guardan en estado:** el peso que usa la calculadora, la categoría elegida y las dosis calculadas se calculan en cada render a partir del estado real.
 - **Los servicios (`services/`) son el único lugar que habla con internet**; las pantallas solo reciben datos o un error.
@@ -91,6 +93,6 @@ Las dos son públicas y no necesitan clave.
 
 ## Limitaciones conocidas
 
-- Las dosis salen del libro de Medicamentos en Emergencias Pediátricas (SAE). Para ketamina y fentanilo el libro da un rango (1–2 por kg) y la app calcula el mínimo. Los accesos rápidos de peso por edad (RN, 6 m, 1 a...) son orientativos y no vienen del libro.
-- Las contraindicaciones de CIMA son fichas técnicas de España, no de Argentina, y no todos los medicamentos están disponibles.
+- Las dosis, preparaciones y volúmenes salen tal cual del libro de Medicamentos en Emergencias Pediátricas; la app no recalcula las tablas. Los accesos rápidos de peso por edad son los de la tabla "Referencias rápidas" del libro (donde hay un rango se toma el valor menor).
+- Las contraindicaciones de CIMA no son del libro (aparecen marcadas como fuente externa); son fichas técnicas de España, no de Argentina, y no todos los medicamentos están disponibles.
 - El aviso de alergias es una coincidencia de texto: no relaciona familias de fármacos (ej: penicilina con otros antibióticos). Es un aviso, no un bloqueo; la decisión es del médico.

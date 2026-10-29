@@ -1,9 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Keyboard, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
 import { BotonExportar } from '@/components/boton-exportar';
+import { CampoPeso } from '@/components/campo-peso';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
@@ -11,28 +12,51 @@ import { useSesion } from '@/context/sesion';
 import { enviarAtencion as enviarAtencionApi } from '@/services/api';
 import { formatearNumero } from '@/utils/calcular-dosis';
 import { calcularEdad, formatearHora } from '@/utils/fechas';
-import { restarPeso, sumarPeso } from '@/utils/peso';
+import { usePesosLibro } from '@/services/pesos-libro';
+import { normalizarPeso, pesoAnterior, pesoSiguiente } from '@/utils/peso';
 
 type Props = {
-  onEnviada: () => void; // se llama después de enviar la atención
+  onEnviada: () => void;
 };
 
-// Pantalla del médico con un paciente escaneado: sus datos y las dosis
-// suministradas en esta atención, con el botón para enviarlas.
 export function AtencionActual({ onEnviada }: Props) {
-  const { pacienteEscaneado, dosisSuministradas, actualizarPeso, quitarDosis, terminarAtencion } =
-    useSesion();
+  const {
+    pacienteEscaneado,
+    pesoGuardado,
+    dosisSuministradas,
+    actualizarPeso,
+    guardarPeso,
+    quitarDosis,
+    terminarAtencion,
+  } = useSesion();
 
+  const { pesos } = usePesosLibro();
   const [enviando, setEnviando] = useState(false);
+  const [guardandoPeso, setGuardandoPeso] = useState(false);
 
   if (pacienteEscaneado === null) return null;
 
-  // Guarda la atención en el servidor; recién cuando responde bien se cierra la pantalla
+  // Siempre se usa el peso de una tabla del libro (hacia abajo)
+  const peso = pesos === null ? null : (normalizarPeso(pesos, pacienteEscaneado.pesoKg) ?? pesos[0]);
+  const pesoCambiado =
+    pesos !== null && pesoGuardado !== null && peso !== (normalizarPeso(pesos, pesoGuardado) ?? pesos[0]);
+
+  async function guardarSoloPeso() {
+    setGuardandoPeso(true);
+    try {
+      await guardarPeso();
+    } catch (error) {
+      Alert.alert('No se pudo guardar el peso', error instanceof Error ? error.message : 'Intentá de nuevo.');
+    } finally {
+      setGuardandoPeso(false);
+    }
+  }
+
   async function enviarAtencion() {
     if (pacienteEscaneado === null) return;
     setEnviando(true);
     try {
-      await enviarAtencionApi(pacienteEscaneado.id, pacienteEscaneado.pesoKg, dosisSuministradas);
+      await enviarAtencionApi(pacienteEscaneado.id, peso ?? pacienteEscaneado.pesoKg, dosisSuministradas);
       terminarAtencion();
       onEnviada();
     } catch (error) {
@@ -53,22 +77,46 @@ export function AtencionActual({ onEnviada }: Props) {
             {calcularEdad(pacienteEscaneado.fechaNacimiento)} · DNI {pacienteEscaneado.dni}
           </Text>
 
-          <View style={styles.filaPeso}>
-            <Pressable
-              style={styles.botonPeso}
-              onPress={() => actualizarPeso(restarPeso(pacienteEscaneado.pesoKg))}>
-              <Ionicons name="remove" size={22} color={COLORES.azulPrimario} />
-            </Pressable>
-            <View style={styles.valorPeso}>
-              <Text style={styles.numeroPeso}>{formatearNumero(pacienteEscaneado.pesoKg)} kg</Text>
-              <Text style={styles.detalle}>Corregí el peso si cambió</Text>
+          {pesos !== null && peso !== null ? (
+            <View style={styles.filaPeso}>
+              <Pressable
+                style={styles.botonPeso}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  actualizarPeso(pesoAnterior(pesos, peso));
+                }}>
+                <Ionicons name="remove" size={22} color={COLORES.azulPrimario} />
+              </Pressable>
+              <View style={styles.valorPeso}>
+                <View style={styles.pesoEscrito}>
+                  <CampoPeso valor={peso} pesos={pesos} onCambiar={actualizarPeso} estilo={styles.numeroPeso} />
+                  <Text style={styles.numeroPeso}>kg</Text>
+                </View>
+                <Text style={styles.detalle}>
+                  {pesoCambiado ? 'Peso corregido, todavía sin guardar' : 'Peso de la tabla del libro'}
+                </Text>
+              </View>
+              <Pressable
+                style={styles.botonPeso}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  actualizarPeso(pesoSiguiente(pesos, peso));
+                }}>
+                <Ionicons name="add" size={22} color={COLORES.azulPrimario} />
+              </Pressable>
             </View>
-            <Pressable
-              style={styles.botonPeso}
-              onPress={() => actualizarPeso(sumarPeso(pacienteEscaneado.pesoKg))}>
-              <Ionicons name="add" size={22} color={COLORES.azulPrimario} />
-            </Pressable>
-          </View>
+          ) : (
+            <Text style={styles.detalle}>Cargando pesos del libro…</Text>
+          )}
+
+          {pesoCambiado && (
+            <Boton
+              texto={guardandoPeso ? 'Guardando…' : 'Guardar solo el peso'}
+              variante="secundario"
+              onPress={guardarSoloPeso}
+              deshabilitado={guardandoPeso}
+            />
+          )}
 
           <View style={styles.filaAlergias}>
             {pacienteEscaneado.alergias.length === 0 && (
@@ -160,6 +208,11 @@ const styles = StyleSheet.create({
   valorPeso: {
     flex: 1,
     alignItems: 'center',
+  },
+  pesoEscrito: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   numeroPeso: {
     fontSize: 28,

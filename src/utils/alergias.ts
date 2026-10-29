@@ -1,23 +1,23 @@
-import { Medicamento } from '@/data/tipos';
+import { Alergeno } from '@/data/tipos';
 import { normalizarNombre } from '@/utils/validaciones';
 
-// Devuelve la alergia del paciente que coincide con el medicamento, o null si ninguna.
-// Es una coincidencia de texto, sin tildes ni mayúsculas: la alergia aparece dentro del
-// nombre o del principio activo del medicamento (o al revés). Por ejemplo, "Epinefrina"
-// coincide con Adrenalina porque ese es su principio activo.
-// No relaciona familias de fármacos (ej: penicilina con otros antibióticos): eso lo decide el médico.
-export function buscarAlergia(alergias: string[], medicamento: Medicamento) {
-  const nombre = normalizarNombre(medicamento.nombre);
-  const principioActivo = normalizarNombre(medicamento.principioActivo);
+// Devuelve la alergia del paciente que corresponde a la indicación, o null si ninguna.
+// La alergia es una sustancia de la lista del libro: coincide si es el principio activo de la indicación
+// o si aparece en su nombre (sin tildes ni mayúsculas). No relaciona familias de fármacos: eso lo decide el médico.
+export function buscarAlergia(
+  alergias: string[],
+  alergenos: Alergeno[],
+  indicacion: { nombre: string; principioActivo?: string }
+) {
+  const nombre = normalizarNombre(indicacion.nombre);
+  const principioActivo = normalizarNombre(indicacion.principioActivo ?? '');
 
   for (const alergia of alergias) {
-    const texto = normalizarNombre(alergia);
-    // Con menos de 3 letras cualquier medicamento coincidiría
-    if (texto.length < 3) continue;
+    const alergeno = alergenos.find((otro) => otro.nombre === alergia);
+    if (alergeno === undefined) continue;
 
-    if (nombre.includes(texto) || principioActivo.includes(texto) || texto.includes(principioActivo)) {
-      return alergia;
-    }
+    const sustancia = normalizarNombre(alergeno.principioActivo);
+    if (sustancia === principioActivo || nombre.includes(sustancia)) return alergia;
   }
   return null;
 }

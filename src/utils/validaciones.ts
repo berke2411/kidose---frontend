@@ -1,7 +1,4 @@
-// Validaciones de formularios. Cada función devuelve un mensaje de error,
-// o null si el dato está bien.
 
-// true si el texto tiene al menos un carácter y todos son números
 function soloNumeros(texto: string) {
   return texto !== '' && texto.split('').every((letra) => letra >= '0' && letra <= '9');
 }
@@ -10,13 +7,12 @@ export function validarEmail(email: string): string | null {
   const texto = email.trim();
   if (texto === '') return 'Ingresá tu email.';
 
-  // Tiene que ser "algo@dominio.ext": una sola arroba, sin espacios
   const partes = texto.split('@');
   if (texto.includes(' ') || partes.length !== 2) return 'El email no es válido.';
 
   const [usuario, dominio] = partes;
   const ultimoPunto = dominio.lastIndexOf('.');
-  const terminacionCorta = dominio.length - ultimoPunto < 3; // ej: "a@b.c"
+  const terminacionCorta = dominio.length - ultimoPunto < 3;
   if (usuario === '' || ultimoPunto < 1 || terminacionCorta || dominio.includes('..')) {
     return 'El email no es válido.';
   }
@@ -47,7 +43,6 @@ export function validarDni(dni: string): string | null {
   return null;
 }
 
-// Calle y altura, ej: "Av Santa Fe 1234": al menos dos palabras y la última es un número
 export function validarDireccion(direccion: string): string | null {
   const palabras = direccion.split(' ').filter((palabra) => palabra !== '');
   const ultima = palabras[palabras.length - 1];
@@ -65,17 +60,16 @@ export function validarMatricula(matricula: string): string | null {
   return null;
 }
 
-// Compara dos nombres sin importar mayúsculas, tildes ni espacios de más
-// (así "maría  gimenez" coincide con "María Giménez").
+// Compara nombres sin importar mayúsculas, tildes ni espacios de más
 export function nombresIguales(a: string, b: string) {
   return normalizarNombre(a) === normalizarNombre(b);
 }
 
 export function normalizarNombre(nombre: string) {
   const sinTildes = nombre
-    .normalize('NFD') // separa la tilde de la letra
+    .normalize('NFD')
     .split('')
-    .filter((letra) => letra < '̀' || letra > 'ͯ') // saca las tildes
+    .filter((letra) => letra < '̀' || letra > 'ͯ')
     .join('');
   return sinTildes
     .toLowerCase()

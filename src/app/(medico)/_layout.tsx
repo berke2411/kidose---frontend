@@ -6,10 +6,8 @@ import { BotonCentralTabs, ESTILO_BARRA_TABS } from '@/components/boton-central-
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
-// Pestaña inicial del grupo
 export const unstable_settings = { anchor: 'escanear' };
 
-// Barra inferior del médico: escanear, calculadora (centro) y perfil.
 export default function MedicoLayout() {
   const { usuario, pacienteEscaneado } = useSesion();
 

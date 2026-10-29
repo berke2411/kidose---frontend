@@ -9,7 +9,6 @@ import { FUENTES } from '@/constants/tipografia';
 import { useSesion } from '@/context/sesion';
 import { calcularEdad } from '@/utils/fechas';
 
-// Pantalla de perfil: la usan médico y paciente (cambian los datos que se muestran).
 export function PerfilUsuario() {
   const { usuario, cerrarSesion } = useSesion();
 
@@ -39,7 +38,6 @@ export function PerfilUsuario() {
   }
   const nombreRol = { medico: 'MÉDICO/A', paciente: 'PACIENTE', admin: 'ADMINISTRADOR' }[usuario.rol];
 
-  // Iniciales para la "foto" (todavía no se puede subir una foto real)
   const iniciales = usuario.nombre
     .split(' ')
     .filter((palabra) => palabra !== '')

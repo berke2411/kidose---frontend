@@ -39,7 +39,13 @@
           "imageWidth": 76
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Kidose usa Face ID para confirmar tu identidad al abrir la app."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

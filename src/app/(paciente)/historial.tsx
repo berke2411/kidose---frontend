@@ -14,16 +14,13 @@ import { listarAtenciones } from '@/services/api';
 import { formatearNumero } from '@/utils/calcular-dosis';
 import { formatearFecha, formatearHora } from '@/utils/fechas';
 
-// Pestaña izquierda del paciente: historial de atenciones (fecha, médico y dosis).
 export default function HistorialScreen() {
   const { usuario } = useSesion();
   const [medicamentoInfo, setMedicamentoInfo] = useState<Medicamento | null>(null);
-  // Las atenciones vienen del servidor; null mientras se cargan
   const [atenciones, setAtenciones] = useState<Atencion[] | null>(null);
   const [error, setError] = useState('');
   const idPaciente = usuario?.rol === 'paciente' ? usuario.id : null;
 
-  // Se vuelve a pedir cada vez que se entra a la pestaña, así aparece lo último que se atendió
   useFocusEffect(
     useCallback(() => {
       if (idPaciente === null) return;
@@ -61,7 +58,6 @@ export default function HistorialScreen() {
             <View style={styles.divisor} />
 
             {atencion.dosis.map((dosis) => {
-              // La API manda el medicamento completo para poder ver sus contraindicaciones
               const medicamento = dosis.medicamento;
               return (
                 <View key={dosis.id} style={styles.filaDosis}>
@@ -70,7 +66,8 @@ export default function HistorialScreen() {
                     <Text style={styles.detalle}>
                       {dosis.via} · {formatearHora(dosis.hora)}
                     </Text>
-                    {medicamento && <BotonInfo onPress={() => setMedicamentoInfo(medicamento)} />}
+                    {dosis.detalle !== undefined && dosis.detalle !== '' && <Text style={styles.detalle}>{dosis.detalle}</Text>}
+                    {medicamento && medicamento.principioActivo !== '' && <BotonInfo onPress={() => setMedicamentoInfo(medicamento)} />}
                   </View>
                   <Text style={styles.cantidad}>
                     {formatearNumero(dosis.cantidad)} {dosis.unidad}

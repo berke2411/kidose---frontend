@@ -1,6 +1,6 @@
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Boton } from '@/components/boton';
@@ -12,8 +12,6 @@ import { useSesion } from '@/context/sesion';
 import { iniciarSesionApi } from '@/services/api';
 import { validarEmail } from '@/utils/validaciones';
 
-// Pantalla de ingreso: es lo primero que ve el usuario al abrir la app.
-// El servidor verifica el email y la contraseña y devuelve el token de la sesión.
 export default function IngresoScreen() {
   const insets = useSafeAreaInsets();
   const { usuario: usuarioActual, iniciarSesion } = useSesion();
@@ -45,58 +43,54 @@ export default function IngresoScreen() {
     router.push('/solicitar-cuenta');
   }
 
-  // Con sesión iniciada (recién ingresada o recuperada) se salta el login
   if (usuarioActual !== null) {
     const inicio = { medico: '/escanear', paciente: '/mi-qr', admin: '/solicitudes' } as const;
     return <Redirect href={inicio[usuarioActual.rol]} />;
   }
 
   return (
-    <ScrollView
-      style={styles.pantalla}
-      contentContainerStyle={[styles.contenido, { paddingTop: insets.top + 48 }]}
-      automaticallyAdjustKeyboardInsets
-      keyboardShouldPersistTaps="handled">
-      <View style={styles.marca}>
-        <Logo tamano="grande" />
-        <Text style={styles.lema}>DOSIS PEDIÁTRICAS DE EMERGENCIA</Text>
-      </View>
+    <KeyboardAvoidingView style={styles.pantalla} behavior="padding">
+      <ScrollView
+        style={styles.pantalla}
+        contentContainerStyle={[styles.contenido, { paddingTop: insets.top + 48 }]}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.marca}>
+          <Logo tamano="grande" />
+          <Text style={styles.lema}>DOSIS PEDIÁTRICAS DE EMERGENCIA</Text>
+        </View>
 
-      <View style={styles.tarjeta}>
-        <Text style={styles.titulo}>Iniciar sesión</Text>
+        <View style={styles.tarjeta}>
+          <Text style={styles.titulo}>Iniciar sesión</Text>
 
-        <CampoTexto
-          etiqueta="EMAIL"
-          placeholder="nombre@hospital.com"
-          value={email}
-          onChangeText={setEmail}
-          teclado="email-address"
-          error={errorEmail}
-        />
-        <CampoTexto
-          etiqueta="CONTRASEÑA"
-          placeholder="••••••••"
-          value={contrasena}
-          onChangeText={setContrasena}
-          esContrasena
-          error={errorContrasena}
-        />
+          <CampoTexto
+            etiqueta="EMAIL"
+            placeholder="nombre@hospital.com"
+            value={email}
+            onChangeText={setEmail}
+            teclado="email-address"
+            error={errorEmail}
+          />
+          <CampoTexto
+            etiqueta="CONTRASEÑA"
+            placeholder="••••••••"
+            value={contrasena}
+            onChangeText={setContrasena}
+            esContrasena
+            error={errorContrasena}
+          />
 
-        <Boton texto={ingresando ? 'Ingresando…' : 'Ingresar'} onPress={ingresar} deshabilitado={ingresando} />
+          <Boton texto={ingresando ? 'Ingresando…' : 'Ingresar'} onPress={ingresar} deshabilitado={ingresando} />
 
-        <Text style={styles.aclaracion}>
-          Cuentas de prueba: medico@kidose.com / Medico123 · paciente@kidose.com / Paciente123 · admin@kidose.com / Admin123
-        </Text>
+          <View style={styles.divisor} />
 
-        <View style={styles.divisor} />
-
-        <Text style={styles.pregunta}>¿Todavía no tenés cuenta?</Text>
-        <Boton texto="Solicitar apertura de cuenta" variante="secundario" onPress={irASolicitarCuenta} />
-        <Text style={styles.aclaracion}>
-          Las cuentas nuevas deben ser aprobadas por un administrador.
-        </Text>
-      </View>
-    </ScrollView>
+          <Text style={styles.pregunta}>¿Todavía no tenés cuenta?</Text>
+          <Boton texto="Solicitar apertura de cuenta" variante="secundario" onPress={irASolicitarCuenta} />
+          <Text style={styles.aclaracion}>
+            Las cuentas nuevas deben ser aprobadas por un administrador.
+          </Text>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

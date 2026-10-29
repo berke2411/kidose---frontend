@@ -6,10 +6,8 @@ import { ESTILO_BARRA_TABS } from '@/components/boton-central-tabs';
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
-// Pestaña inicial del grupo
 export const unstable_settings = { anchor: 'solicitudes' };
 
-// Barra inferior del administrador: solicitudes de cuenta y perfil.
 export default function AdminLayout() {
   const { usuario } = useSesion();
 
@@ -28,7 +26,7 @@ export default function AdminLayout() {
       <Tabs.Screen
         name="solicitudes"
         options={{
-          title: 'Solicitudes',
+          title: 'Médicos',
           tabBarIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color as string} />,
         }}
       />

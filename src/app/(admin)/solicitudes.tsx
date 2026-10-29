@@ -1,36 +1,46 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Boton } from '@/components/boton';
 import { Encabezado } from '@/components/encabezado';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 import { Medico } from '@/data/tipos';
-import { listarSolicitudes, resolverSolicitud } from '@/services/api';
+import { cambiarEstadoMedico, listarMedicos } from '@/services/api';
 
-// Pestaña del administrador: solicitudes de cuenta de médicos pendientes de aprobación.
-export default function SolicitudesScreen() {
-  // null mientras se cargan
-  const [solicitudes, setSolicitudes] = useState<Medico[] | null>(null);
+type Vista = 'pendiente' | 'aprobada' | 'baja';
+
+const VISTAS: { estado: Vista; titulo: string; vacio: string }[] = [
+  { estado: 'pendiente', titulo: 'Solicitudes', vacio: 'No hay solicitudes pendientes.' },
+  { estado: 'aprobada', titulo: 'Activos', vacio: 'No hay médicos activos.' },
+  { estado: 'baja', titulo: 'De baja', vacio: 'No hay médicos dados de baja.' },
+];
+
+// Pestaña del administrador: aprueba solicitudes de médicos, y da de baja o vuelve a habilitar a los que ya tienen cuenta.
+// Nunca se borra un médico: la baja solo cambia su estado y sus atenciones quedan en el historial.
+export default function MedicosScreen() {
+  const [vista, setVista] = useState<Vista>('pendiente');
+  const [medicos, setMedicos] = useState<Medico[] | null>(null);
   const [error, setError] = useState('');
   const [resolviendo, setResolviendo] = useState<number | null>(null);
+  // La confirmación va en pantalla porque Alert con botones no funciona en la versión web
+  const [confirmandoBaja, setConfirmandoBaja] = useState<number | null>(null);
 
   const cargar = useCallback(() => {
     setError('');
-    listarSolicitudes('pendiente')
-      .then(setSolicitudes)
-      .catch((e) => setError(e instanceof Error ? e.message : 'No se pudieron cargar las solicitudes.'));
-  }, []);
+    listarMedicos(vista)
+      .then(setMedicos)
+      .catch((e) => setError(e instanceof Error ? e.message : 'No se pudieron cargar los médicos.'));
+  }, [vista]);
 
-  // Se vuelve a pedir cada vez que se entra a la pestaña
   useFocusEffect(cargar);
 
-  async function resolver(medico: Medico, estado: 'aprobada' | 'rechazada') {
+  async function cambiarEstado(medico: Medico, estado: 'aprobada' | 'rechazada' | 'baja') {
     setResolviendo(medico.id);
     try {
-      await resolverSolicitud(medico.id, estado);
-      cargar(); // la lista se recarga: la fuente de verdad es el servidor
+      await cambiarEstadoMedico(medico.id, estado);
+      cargar();
     } catch (e) {
       Alert.alert('No se pudo guardar', e instanceof Error ? e.message : 'Intentá de nuevo.');
     } finally {
@@ -38,16 +48,35 @@ export default function SolicitudesScreen() {
     }
   }
 
+  function elegirVista(nueva: Vista) {
+    setConfirmandoBaja(null);
+    setMedicos(null);
+    setVista(nueva);
+  }
+
+  const vistaActual = VISTAS.find((otra) => otra.estado === vista) ?? VISTAS[0];
+
   return (
     <View style={styles.pantalla}>
-      <Encabezado etiqueta="SOLICITUDES" />
+      <Encabezado etiqueta="MÉDICOS" />
+
+      <View style={styles.selector}>
+        {VISTAS.map((opcion) => (
+          <Pressable
+            key={opcion.estado}
+            style={[styles.opcion, vista === opcion.estado && styles.opcionActiva]}
+            onPress={() => elegirVista(opcion.estado)}>
+            <Text style={[styles.textoOpcion, vista === opcion.estado && styles.textoOpcionActivo]}>{opcion.titulo}</Text>
+          </Pressable>
+        ))}
+      </View>
 
       <ScrollView contentContainerStyle={styles.contenido}>
-        {solicitudes === null && error === '' && <ActivityIndicator color={COLORES.azulPrimario} />}
+        {medicos === null && error === '' && <ActivityIndicator color={COLORES.azulPrimario} />}
         {error !== '' && <Text style={styles.vacio}>{error}</Text>}
-        {solicitudes?.length === 0 && <Text style={styles.vacio}>No hay solicitudes pendientes.</Text>}
+        {medicos?.length === 0 && <Text style={styles.vacio}>{vistaActual.vacio}</Text>}
 
-        {solicitudes?.map((medico) => (
+        {medicos?.map((medico) => (
           <View key={medico.id} style={styles.tarjeta}>
             <Text style={styles.nombre}>{medico.nombre}</Text>
             <Text style={styles.detalle}>
@@ -58,17 +87,37 @@ export default function SolicitudesScreen() {
             <Text style={styles.detalle}>{medico.email}</Text>
 
             <View style={styles.acciones}>
-              <Boton
-                texto="Aprobar"
-                deshabilitado={resolviendo === medico.id}
-                onPress={() => resolver(medico, 'aprobada')}
-              />
-              <Boton
-                texto="Rechazar"
-                variante="secundario"
-                deshabilitado={resolviendo === medico.id}
-                onPress={() => resolver(medico, 'rechazada')}
-              />
+              {vista === 'pendiente' && (
+                <>
+                  <Boton texto="Aprobar" deshabilitado={resolviendo === medico.id} onPress={() => cambiarEstado(medico, 'aprobada')} />
+                  <Boton
+                    texto="Rechazar"
+                    variante="secundario"
+                    deshabilitado={resolviendo === medico.id}
+                    onPress={() => cambiarEstado(medico, 'rechazada')}
+                  />
+                </>
+              )}
+              {vista === 'aprobada' && confirmandoBaja !== medico.id && (
+                <Boton texto="Dar de baja" variante="secundario" onPress={() => setConfirmandoBaja(medico.id)} />
+              )}
+              {vista === 'aprobada' && confirmandoBaja === medico.id && (
+                <>
+                  <Text style={styles.aviso}>No va a poder ingresar a la app. Sus atenciones quedan en el historial y se lo puede volver a habilitar.</Text>
+                  <Boton
+                    texto="Confirmar baja"
+                    deshabilitado={resolviendo === medico.id}
+                    onPress={() => {
+                      setConfirmandoBaja(null);
+                      cambiarEstado(medico, 'baja');
+                    }}
+                  />
+                  <Boton texto="Cancelar" variante="secundario" onPress={() => setConfirmandoBaja(null)} />
+                </>
+              )}
+              {vista === 'baja' && (
+                <Boton texto="Volver a habilitar" deshabilitado={resolviendo === medico.id} onPress={() => cambiarEstado(medico, 'aprobada')} />
+              )}
             </View>
           </View>
         ))}
@@ -81,6 +130,32 @@ const styles = StyleSheet.create({
   pantalla: {
     flex: 1,
     backgroundColor: COLORES.fondo,
+  },
+  selector: {
+    flexDirection: 'row',
+    backgroundColor: COLORES.divisor,
+    borderRadius: 11,
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  opcion: {
+    flex: 1,
+    height: 38,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  opcionActiva: {
+    backgroundColor: COLORES.blanco,
+  },
+  textoOpcion: {
+    fontSize: 14,
+    fontFamily: FUENTES.seminegrita,
+    color: COLORES.gris,
+  },
+  textoOpcionActivo: {
+    color: COLORES.azulPrimario,
   },
   contenido: {
     padding: 16,
@@ -110,6 +185,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: FUENTES.normal,
     color: COLORES.gris,
+  },
+  aviso: {
+    fontSize: 13,
+    fontFamily: FUENTES.normal,
+    color: COLORES.texto,
   },
   acciones: {
     gap: 8,

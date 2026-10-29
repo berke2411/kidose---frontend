@@ -8,11 +8,10 @@ import { Contraindicaciones, Medicamento } from '@/data/tipos';
 import { buscarContraindicaciones } from '@/services/cima';
 
 type Props = {
-  medicamento: Medicamento | null; // si es null el modal está cerrado
+  medicamento: Medicamento | null;
   onCerrar: () => void;
 };
 
-// Contenido del modal: se monta cada vez que se abre, por eso arranca "cargando"
 function InfoMedicamento({ medicamento }: { medicamento: Medicamento }) {
   const [info, setInfo] = useState<Contraindicaciones | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -31,7 +30,6 @@ function InfoMedicamento({ medicamento }: { medicamento: Medicamento }) {
         if (!cancelado) setCargando(false);
       });
 
-    // Si se cierra antes de que llegue la respuesta, la ignoramos
     return () => {
       cancelado = true;
     };
@@ -54,15 +52,13 @@ function InfoMedicamento({ medicamento }: { medicamento: Medicamento }) {
         <Text style={styles.texto}>{info.texto}</Text>
       </View>
       <Text style={styles.fuente}>
-        Ficha técnica de {info.producto} ({info.laboratorio}). Fuente: CIMA, agencia de medicamentos de
-        España.
+        Ficha técnica de {info.producto} ({info.laboratorio}). Fuente externa: CIMA, agencia de medicamentos de
+        España. No es información del libro.
       </Text>
     </ScrollView>
   );
 }
 
-// Ventana con las contraindicaciones del medicamento.
-// La usan el médico (desde la calculadora) y el paciente (desde su historial).
 export function ModalInfoMedicamento({ medicamento, onCerrar }: Props) {
   return (
     <Modal visible={medicamento !== null} animationType="slide" transparent onRequestClose={onCerrar}>

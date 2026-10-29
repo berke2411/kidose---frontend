@@ -12,10 +12,8 @@ import { useEffect } from 'react';
 
 import { SesionProvider } from '@/context/sesion';
 
-// La pantalla de carga se queda hasta que la tipografía esté lista
 SplashScreen.preventAutoHideAsync();
 
-// Layout raíz: navegación en pila de toda la app.
 export default function RootLayout() {
   const [fuentesListas, errorFuentes] = useFonts({
     Inter_400Regular,
@@ -32,7 +30,6 @@ export default function RootLayout() {
 
   return (
     <SesionProvider>
-      {/* Íconos blancos porque los encabezados son azules */}
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }} />
     </SesionProvider>

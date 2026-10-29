@@ -9,8 +9,6 @@ type Props = {
   icono: ComponentProps<typeof Ionicons>['name'];
 };
 
-// Botón central de la barra inferior (estilo Instagram):
-// un cuadrado azul que sobresale de la barra. Lo usan médico y paciente.
 export function BotonCentralTabs({ onPress, icono }: Props) {
   return (
     <Pressable onPress={onPress} style={styles.contenedor}>
@@ -34,7 +32,7 @@ const styles = StyleSheet.create({
   boton: {
     width: 62,
     height: 62,
-    marginTop: -22, // sobresale de la barra
+    marginTop: -22,
     borderRadius: 20,
     backgroundColor: COLORES.azulPrimario,
     alignItems: 'center',

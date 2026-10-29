@@ -6,10 +6,8 @@ import { BotonCentralTabs, ESTILO_BARRA_TABS } from '@/components/boton-central-
 import { COLORES } from '@/constants/colores';
 import { useSesion } from '@/context/sesion';
 
-// Pestaña inicial del grupo
 export const unstable_settings = { anchor: 'mi-qr' };
 
-// Barra inferior del paciente: historial, mi QR (centro) y perfil.
 export default function PacienteLayout() {
   const { usuario } = useSesion();
 

@@ -7,7 +7,6 @@ type Props = {
   tamano?: 'chico' | 'grande';
 };
 
-// Isotipo de Kidose: una gota blanca con una cruz médica azul, más el nombre.
 export function Logo({ tamano = 'chico' }: Props) {
   const esGrande = tamano === 'grande';
 

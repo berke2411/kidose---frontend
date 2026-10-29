@@ -1,17 +1,19 @@
 import Constants from 'expo-constants';
 
 import {
+  Alergeno,
   Atencion,
-  Categoria,
   DosisSuministrada,
+  Generales,
   Medico,
   Paciente,
+  PesosLibro,
   ProfesionalRegistrado,
+  TablaLibro,
   Usuario,
 } from '@/data/tipos';
 
-// Dirección del backend. Se puede fijar con EXPO_PUBLIC_API_URL; si no, se usa la IP de la
-// computadora desde la que corre Expo (así funciona en el celular sin configurar nada).
+// Si no hay EXPO_PUBLIC_API_URL, se usa la IP de la computadora que corre Expo.
 function direccionDelServidor() {
   const configurada = process.env.EXPO_PUBLIC_API_URL;
   if (configurada) return configurada;
@@ -22,7 +24,6 @@ function direccionDelServidor() {
 
 export const API_URL = direccionDelServidor();
 
-// El token de la sesión: lo fija el contexto al iniciar sesión y se manda en cada pedido.
 let token: string | null = null;
 let alVencerLaSesion: (() => void) | null = null;
 
@@ -30,12 +31,10 @@ export function fijarToken(nuevo: string | null) {
   token = nuevo;
 }
 
-// El contexto avisa qué hacer cuando el servidor rechaza el token (sesión vencida).
 export function alVencerSesion(accion: (() => void) | null) {
   alVencerLaSesion = accion;
 }
 
-// Error de la API: guarda el código HTTP, y el mensaje es el que mandó el servidor.
 export class ErrorApi extends Error {
   estado: number;
 
@@ -71,8 +70,6 @@ async function pedir<T>(ruta: string, opciones: Opciones = {}): Promise<T> {
   return datos as T;
 }
 
-// --- Cuenta y sesión ---
-
 export function iniciarSesionApi(email: string, contrasena: string) {
   return pedir<{ token: string; usuario: Usuario }>('/auth/login', {
     metodo: 'POST',
@@ -90,10 +87,8 @@ export type DatosRegistro = {
   dni: string;
   email: string;
   contrasena: string;
-  // médico
   matricula?: string;
   hospital?: string;
-  // paciente
   fechaNacimiento?: string;
   pesoKg?: number;
   alergias?: string[];
@@ -106,7 +101,6 @@ export function registrarCuenta(datos: DatosRegistro) {
   return pedir<Usuario>('/auth/registro', { metodo: 'POST', cuerpo: datos });
 }
 
-// Busca una matrícula en el registro. Devuelve null si no existe.
 export async function buscarMatricula(matricula: string): Promise<ProfesionalRegistrado | null> {
   try {
     return await pedir<ProfesionalRegistrado>(`/matriculas/${matricula}`);
@@ -116,17 +110,14 @@ export async function buscarMatricula(matricula: string): Promise<ProfesionalReg
   }
 }
 
-// --- Administración de cuentas de médicos ---
-
-export function listarSolicitudes(estado: string) {
+export function listarMedicos(estado: string) {
   return pedir<Medico[]>(`/usuarios?estado=${estado}`);
 }
 
-export function resolverSolicitud(id: number, estado: 'aprobada' | 'rechazada') {
+// Aprueba o rechaza una solicitud, da de baja a un médico aprobado o lo vuelve a habilitar (nunca se borra)
+export function cambiarEstadoMedico(id: number, estado: 'aprobada' | 'rechazada' | 'baja') {
   return pedir<Medico>(`/usuarios/${id}`, { metodo: 'PATCH', cuerpo: { estado } });
 }
-
-// --- QR ---
 
 export function pedirCodigoQr() {
   return pedir<{ codigo: string; venceEn: string }>('/qr', { metodo: 'POST' });
@@ -136,10 +127,23 @@ export function leerCodigoQr(codigo: string) {
   return pedir<Paciente>('/qr/leer', { metodo: 'POST', cuerpo: { codigo } });
 }
 
-// --- Calculadora e historial ---
+// Pesos de las tablas del libro (pública: el registro la usa antes de tener cuenta)
+export function obtenerPesosLibro() {
+  return pedir<PesosLibro>('/libro/pesos');
+}
 
-export function listarCategorias() {
-  return pedir<Categoria[]>('/categorias');
+// Alergias posibles: las sustancias del libro (pública, la usa el registro)
+export async function obtenerAlergenos() {
+  const respuesta = await pedir<{ alergenos: Alergeno[] }>('/libro/alergenos');
+  return respuesta.alergenos;
+}
+
+export function obtenerTablaLibro(peso: number) {
+  return pedir<TablaLibro>(`/libro/tabla?peso=${peso}`);
+}
+
+export function obtenerGenerales(peso: number) {
+  return pedir<Generales>(`/libro/generales?peso=${peso}`);
 }
 
 export function listarAtenciones(pacienteId: number) {
@@ -157,9 +161,12 @@ export function enviarAtencion(pacienteId: number, pesoKg: number, dosis: DosisS
   });
 }
 
-// Reemplaza la lista de alergias del paciente (solo puede hacerlo el propio paciente).
 export function actualizarAlergias(id: number, alergias: string[]) {
   return pedir<Paciente>(`/pacientes/${id}`, { metodo: 'PATCH', cuerpo: { alergias } });
+}
+
+export function actualizarPesoPaciente(id: number, pesoKg: number) {
+  return pedir<Paciente>(`/pacientes/${id}`, { metodo: 'PATCH', cuerpo: { pesoKg } });
 }
 
 export function obtenerPaciente(id: number) {

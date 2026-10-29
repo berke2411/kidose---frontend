@@ -8,12 +8,11 @@ type Props = {
   onPress: () => void;
 };
 
-// Botón "Más info" de un medicamento. Lo usan la calculadora y el historial.
 export function BotonInfo({ onPress }: Props) {
   return (
     <Pressable style={styles.boton} onPress={onPress}>
       <Ionicons name="information-circle-outline" size={18} color={COLORES.azulPrimario} />
-      <Text style={styles.texto}>Más info</Text>
+      <Text style={styles.texto}>Contraindicaciones (fuente externa)</Text>
     </Pressable>
   );
 }

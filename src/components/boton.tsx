@@ -7,10 +7,9 @@ type Props = {
   texto: string;
   onPress: () => void;
   variante?: 'primario' | 'secundario';
-  deshabilitado?: boolean; // mientras espera una respuesta del servidor
+  deshabilitado?: boolean;
 };
 
-// Botón de la guía visual: altura mínima de 56px.
 export function Boton({ texto, onPress, variante = 'primario', deshabilitado = false }: Props) {
   const esPrimario = variante === 'primario';
 
