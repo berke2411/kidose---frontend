@@ -14,7 +14,6 @@ type Props = {
   deshabilitado?: boolean;
 };
 
-// Alergias del paciente: solo se pueden elegir las sustancias que menciona el libro.
 export function SelectorAlergias({ alergias, onCambiar, deshabilitado = false }: Props) {
   const { alergenos, error, reintentar } = useAlergenos();
   const [abierto, setAbierto] = useState(false);

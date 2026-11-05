@@ -60,7 +60,6 @@ export function validarMatricula(matricula: string): string | null {
   return null;
 }
 
-// Compara nombres sin importar mayúsculas, tildes ni espacios de más
 export function nombresIguales(a: string, b: string) {
   return normalizarNombre(a) === normalizarNombre(b);
 }

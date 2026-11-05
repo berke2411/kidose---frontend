@@ -21,7 +21,6 @@ export default function EscanearScreen() {
   const [error, setError] = useState('');
   const [consultando, setConsultando] = useState(false);
   const [camaraActiva, setCamaraActiva] = useState(false);
-  // La cámara avisa muchas veces por el mismo QR: con esto se procesa uno a la vez
   const leyendo = useRef(false);
 
   useFocusEffect(

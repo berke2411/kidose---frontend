@@ -32,7 +32,6 @@ export function fechaDesdeTexto(texto: string) {
   const [dia, mes, anio] = partes.map(Number);
   if (!Number.isInteger(dia) || !Number.isInteger(mes) || !Number.isInteger(anio) || anio < 1900) return null;
 
-  // Si el día no existe (ej: 31/02), JavaScript corre la fecha al mes siguiente: se detecta así
   const fecha = new Date(anio, mes - 1, dia);
   const existe = fecha.getFullYear() === anio && fecha.getMonth() === mes - 1 && fecha.getDate() === dia;
   if (!existe || fecha > new Date()) return null;

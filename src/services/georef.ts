@@ -31,7 +31,6 @@ export async function buscarLocalidades(provinciaId: string, texto: string): Pro
   const opciones: OpcionGeoref[] = [];
   for (const localidad of datos.localidades) {
     const detalle: string | undefined = localidad.departamento.nombre ?? undefined;
-    // Georef a veces repite la misma localidad con dos códigos: dejamos una sola
     const repetida = opciones.some(
       (opcion) => opcion.nombre === localidad.nombre && opcion.detalle === detalle
     );
@@ -50,7 +49,6 @@ export async function verificarDireccion(
   const datos = await pedir('direcciones', {
     direccion,
     provincia: provincia.id,
-    // Los primeros 5 números del código de la localidad son los de su departamento
     departamento: localidad.id.slice(0, 5),
     max: '1',
   });

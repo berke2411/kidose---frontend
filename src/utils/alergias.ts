@@ -1,9 +1,6 @@
 import { Alergeno } from '@/data/tipos';
 import { normalizarNombre } from '@/utils/validaciones';
 
-// Devuelve la alergia del paciente que corresponde a la indicación, o null si ninguna.
-// La alergia es una sustancia de la lista del libro: coincide si es el principio activo de la indicación
-// o si aparece en su nombre (sin tildes ni mayúsculas). No relaciona familias de fármacos: eso lo decide el médico.
 export function buscarAlergia(
   alergias: string[],
   alergenos: Alergeno[],

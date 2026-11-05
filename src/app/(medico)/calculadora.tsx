@@ -31,8 +31,6 @@ function aMedicamento(item: ItemLibro): Medicamento {
   };
 }
 
-// Pestaña central del médico: tablas del libro según el peso del paciente.
-// Con un paciente escaneado usa su peso y agrega el botón "Suministrar".
 export default function CalculadoraScreen() {
   const { pacienteEscaneado, dosisSuministradas, suministrarDosis, actualizarPeso } = useSesion();
   const { pesos, edadPeso, avisos, error: errorPesos, reintentar: reintentarPesos } = usePesosLibro();
@@ -46,7 +44,6 @@ export default function CalculadoraScreen() {
   const [claveElegida, setClaveElegida] = useState<string | null>(null);
   const [medicamentoInfo, setMedicamentoInfo] = useState<Medicamento | null>(null);
 
-  // Siempre se usa el peso de una tabla del libro (hacia abajo)
   const pesoElegido = pacienteEscaneado ? pacienteEscaneado.pesoKg : pesoManual;
   const peso = pesos === null ? null : (normalizarPeso(pesos, pesoElegido) ?? pesos[0]);
 
@@ -74,7 +71,6 @@ export default function CalculadoraScreen() {
     }
   }
 
-  // Con los botones se cierra el teclado, para que el campo muestre el peso nuevo
   function ajustarPeso(nuevoPeso: number) {
     Keyboard.dismiss();
     cambiarPeso(nuevoPeso);

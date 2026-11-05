@@ -5,7 +5,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORES } from '@/constants/colores';
 import { FUENTES } from '@/constants/tipografia';
 
-// Advertencias del libro, plegadas para no tapar las dosis
 export function AvisosLibro({ avisos }: { avisos: string[] }) {
   const [abierto, setAbierto] = useState(false);
   if (avisos.length === 0) return null;

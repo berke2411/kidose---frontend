@@ -9,7 +9,6 @@ import { listarAtenciones } from '@/services/api';
 import { formatearNumero } from '@/utils/calcular-dosis';
 import { calcularEdad, formatearFecha, formatearHora } from '@/utils/fechas';
 
-// Los textos van dentro de HTML: se reemplazan los caracteres que tienen significado especial
 function escapar(texto: string) {
   return texto
     .split('&').join('&amp;')
@@ -161,7 +160,6 @@ export async function exportarHistorial(paciente: Paciente) {
 
   const { uri } = await Print.printToFileAsync({ html, width: 595, height: 842 });
 
-  // expo-print le pone un nombre al azar
   const archivo = new File(uri);
   archivo.rename(`${titulo}.pdf`);
 

@@ -35,8 +35,6 @@ export type Admin = {
 
 export type Usuario = Medico | Paciente | Admin;
 
-// Un medicamento del libro. principioActivo y viaCima sirven para buscar las contraindicaciones en CIMA y
-// para cruzar con las alergias del paciente; están vacíos en lo que no es un medicamento (dispositivos, electrolitos).
 export type Medicamento = {
   id: number;
   nombre: string;
@@ -46,9 +44,6 @@ export type Medicamento = {
   esCritico: boolean;
 };
 
-// Una indicación de la tabla del libro para un peso: los textos van tal cual los imprime el libro.
-// cantidadMin y cantidadMax son lo que se registra al suministrar (la dosis, o la cantidad principal
-// si no es una dosis única: infusiones, electrolitos, descarga, tubo).
 export type ItemLibro = {
   medicamentoId: number;
   nombre: string;
@@ -81,14 +76,12 @@ export type TablaLibro = {
   categorias: SeccionLibro[];
 };
 
-// Sustancia que menciona el libro: las alergias se eligen de esta lista
 export type Alergeno = { nombre: string; principioActivo: string };
 
 export type PesoPorEdad = { edad: string; etiqueta: string; kg: number; texto: string };
 
 export type PesosLibro = { pesos: number[]; edadPeso: PesoPorEdad[]; avisos: string[] };
 
-// Un valor calculado para el peso a partir de lo que el libro indica fuera de las tablas por peso
 export type CalculoGeneral = {
   etiqueta: string;
   min: number;

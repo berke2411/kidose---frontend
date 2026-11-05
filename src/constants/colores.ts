@@ -2,7 +2,7 @@
 export const COLORES = {
   azulPrimario: '#0B5394',
   azulClaro: '#4A90D9',
-  rojoAcento: '#D32F2F', // solo dosis máxima, alertas y "solicitar médico"
+  rojoAcento: '#D32F2F',
   texto: '#1A1A1A',
   fondo: '#F2F4F7',
   blanco: '#FFFFFF',

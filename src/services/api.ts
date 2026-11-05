@@ -13,7 +13,6 @@ import {
   Usuario,
 } from '@/data/tipos';
 
-// Si no hay EXPO_PUBLIC_API_URL, se usa la IP de la computadora que corre Expo.
 function direccionDelServidor() {
   const configurada = process.env.EXPO_PUBLIC_API_URL;
   if (configurada) return configurada;
@@ -63,7 +62,6 @@ async function pedir<T>(ruta: string, opciones: Opciones = {}): Promise<T> {
 
   const datos = await respuesta.json().catch(() => null);
   if (!respuesta.ok) {
-    // Con un token enviado, un 401 significa que la sesión ya no sirve
     if (respuesta.status === 401 && token !== null) alVencerLaSesion?.();
     throw new ErrorApi(datos?.error ?? 'Ocurrió un error inesperado.', respuesta.status);
   }
@@ -114,7 +112,6 @@ export function listarMedicos(estado: string) {
   return pedir<Medico[]>(`/usuarios?estado=${estado}`);
 }
 
-// Aprueba o rechaza una solicitud, da de baja a un médico aprobado o lo vuelve a habilitar (nunca se borra)
 export function cambiarEstadoMedico(id: number, estado: 'aprobada' | 'rechazada' | 'baja') {
   return pedir<Medico>(`/usuarios/${id}`, { metodo: 'PATCH', cuerpo: { estado } });
 }
@@ -127,12 +124,10 @@ export function leerCodigoQr(codigo: string) {
   return pedir<Paciente>('/qr/leer', { metodo: 'POST', cuerpo: { codigo } });
 }
 
-// Pesos de las tablas del libro (pública: el registro la usa antes de tener cuenta)
 export function obtenerPesosLibro() {
   return pedir<PesosLibro>('/libro/pesos');
 }
 
-// Alergias posibles: las sustancias del libro (pública, la usa el registro)
 export async function obtenerAlergenos() {
   const respuesta = await pedir<{ alergenos: Alergeno[] }>('/libro/alergenos');
   return respuesta.alergenos;

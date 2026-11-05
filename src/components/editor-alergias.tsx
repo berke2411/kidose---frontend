@@ -8,7 +8,6 @@ import { useSesion } from '@/context/sesion';
 import { Paciente } from '@/data/tipos';
 import { actualizarAlergias } from '@/services/api';
 
-// Alergias del paciente. Cada cambio se guarda en el servidor y la lista que se muestra es la que éste devuelve.
 export function EditorAlergias({ paciente }: { paciente: Paciente }) {
   const { actualizarUsuario } = useSesion();
   const [guardando, setGuardando] = useState(false);

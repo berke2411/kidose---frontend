@@ -71,10 +71,8 @@ export default function SolicitarCuentaScreen() {
   const respuestaEsActual = matriculaConFormatoValido && consulta?.matricula === matricula;
   const fallo = matriculaSinConexion === matricula;
   const buscando = matriculaConFormatoValido && !respuestaEsActual && !fallo;
-  // profesional: datos del registro; null = no existe; undefined = todavía sin respuesta
   const profesional = respuestaEsActual ? consulta.profesional : undefined;
 
-  // El peso se pasa al de la tabla del libro que corresponde (siempre hacia abajo)
   const { pesos } = usePesosLibro();
   const pesoNumerico = pesos === null ? null : leerPeso(peso, pesos);
 
@@ -120,7 +118,6 @@ export default function SolicitarCuentaScreen() {
     return intentoEnviar && error ? error : undefined;
   }
 
-  // Excepción: que la matrícula no exista se avisa apenas se escribe (tiempo real)
   const errorMatricula = intentoEnviar
     ? (errores.matricula ?? undefined)
     : fallo

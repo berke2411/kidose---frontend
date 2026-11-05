@@ -13,7 +13,6 @@ export function Logo({ tamano = 'chico' }: Props) {
   return (
     <View style={styles.fila}>
       <View style={[styles.gota, esGrande && styles.gotaGrande]}>
-        {/* La gota está girada: giramos la cruz al revés para que quede derecha */}
         <View style={[styles.cruz, esGrande && styles.cruzGrande]}>
           <View style={styles.cruzVertical} />
           <View style={styles.cruzHorizontal} />

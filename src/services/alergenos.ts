@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { Alergeno } from '@/data/tipos';
 import { obtenerAlergenos } from '@/services/api';
 
-// La lista de alergias posibles se pide una sola vez y se reusa en todas las pantallas
 let guardados: Alergeno[] | null = null;
 
 export function useAlergenos() {

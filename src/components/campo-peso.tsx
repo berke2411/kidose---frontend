@@ -11,10 +11,7 @@ type Props = {
   estilo: StyleProp<TextStyle>;
 };
 
-// Peso que se puede escribir a mano, con coma o punto. Al terminar de escribir se pasa al peso de la tabla
-// del libro que corresponde (hacia abajo); si lo escrito no sirve, vuelve al último peso bueno.
 export function CampoPeso({ valor, pesos, onCambiar, estilo }: Props) {
-  // null cuando no se está escribiendo: ahí se muestra el peso de la tabla
   const [texto, setTexto] = useState<string | null>(null);
 
   function terminar() {

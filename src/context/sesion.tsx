@@ -73,7 +73,6 @@ export function SesionProvider({ children }: { children: ReactNode }) {
 
     recuperarSesion()
       .catch(() => {
-        // Sin conexión, sesión vencida o datos dañados: se empieza sin sesión
         fijarToken(null);
         setToken(null);
         setUsuario(null);

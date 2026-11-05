@@ -36,7 +36,6 @@ export function AtencionActual({ onEnviada }: Props) {
 
   if (pacienteEscaneado === null) return null;
 
-  // Siempre se usa el peso de una tabla del libro (hacia abajo)
   const peso = pesos === null ? null : (normalizarPeso(pesos, pacienteEscaneado.pesoKg) ?? pesos[0]);
   const pesoCambiado =
     pesos !== null && pesoGuardado !== null && peso !== (normalizarPeso(pesos, pesoGuardado) ?? pesos[0]);

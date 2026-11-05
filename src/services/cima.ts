@@ -19,7 +19,6 @@ async function pedir(ruta: string) {
   return respuesta;
 }
 
-// CIMA separa párrafos y viñetas con un espacio no separable; ahí se corta la línea.
 function darFormato(texto: string) {
   const partes = texto.split('\u00a0');
   let resultado = partes[0];
@@ -35,7 +34,6 @@ function darFormato(texto: string) {
     .join('\n');
 }
 
-// CIMA nombra el principio activo con las palabras en otro orden ("ácido tranexámico" / "tranexámico ácido")
 function palabrasOrdenadas(texto: string) {
   return texto.toLowerCase().split(' ').filter((palabra) => palabra !== '').sort().join(' ');
 }

@@ -18,9 +18,7 @@ type Props = {
   alergia?: string | null;
 };
 
-// Una indicación de la tabla del libro para el peso elegido, con los textos tal cual los imprime el libro.
 export function TarjetaLibro({ item, onMasInfo, onSuministrar, vecesSuministrada = 0, alergia = null }: Props) {
-  // Con alergia, el primer toque pide confirmar y recién el segundo suministra
   const [confirmando, setConfirmando] = useState<number | null>(null);
 
   function suministrar(cantidad: number) {
@@ -36,7 +34,6 @@ export function TarjetaLibro({ item, onMasInfo, onSuministrar, vecesSuministrada
   const valor = item.indicar !== '' ? item.indicar : item.administrar;
   const esRango = item.cantidadMin !== item.cantidadMax;
   const cantidades = esRango ? [item.cantidadMin, item.cantidadMax] : [item.cantidadMax];
-  // Lo que no es un medicamento (infusiones, electrolitos, descarga, tubo) se registra, no se suministra
   const verbo = VIAS_QUE_NO_SON_DOSIS.includes(item.via) ? 'Registrar' : 'Suministrar';
   const rotulos = item.via === 'DESFIBRILADOR' ? ['la 1.ª dosis', 'la 2.ª dosis'] : ['el mínimo', 'el máximo'];
   const esMaxima = /dosis m[aá]xima/i.test(item.dosisKg);

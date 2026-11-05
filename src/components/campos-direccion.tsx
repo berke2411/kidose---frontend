@@ -70,7 +70,6 @@ export function CamposDireccion({ mostrarErrores, onCambio }: Props) {
   }
 
   const busquedaLocalidad = localidadTexto.trim();
-  // Georef solo encuentra localidades con 4 letras o más
   const debeBuscarLocalidades = provincia !== null && localidad === null && busquedaLocalidad.length >= 4;
   const claveLocalidades = `${provincia?.id}|${busquedaLocalidad}`;
 

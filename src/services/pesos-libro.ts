@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { PesosLibro } from '@/data/tipos';
 import { obtenerPesosLibro } from '@/services/api';
 
-// Los pesos del libro se piden una sola vez y se reusan en todas las pantallas
 let guardados: PesosLibro | null = null;
 
 export function usePesosLibro() {

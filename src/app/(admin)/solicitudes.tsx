@@ -17,14 +17,11 @@ const VISTAS: { estado: Vista; titulo: string; vacio: string }[] = [
   { estado: 'baja', titulo: 'De baja', vacio: 'No hay médicos dados de baja.' },
 ];
 
-// Pestaña del administrador: aprueba solicitudes de médicos, y da de baja o vuelve a habilitar a los que ya tienen cuenta.
-// Nunca se borra un médico: la baja solo cambia su estado y sus atenciones quedan en el historial.
 export default function MedicosScreen() {
   const [vista, setVista] = useState<Vista>('pendiente');
   const [medicos, setMedicos] = useState<Medico[] | null>(null);
   const [error, setError] = useState('');
   const [resolviendo, setResolviendo] = useState<number | null>(null);
-  // La confirmación va en pantalla porque Alert con botones no funciona en la versión web
   const [confirmandoBaja, setConfirmandoBaja] = useState<number | null>(null);
 
   const cargar = useCallback(() => {

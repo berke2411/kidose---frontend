@@ -5,7 +5,6 @@ import { FUENTES } from '@/constants/tipografia';
 import { ItemGeneral } from '@/data/tipos';
 import { formatearNumero } from '@/utils/calcular-dosis';
 
-// Una indicación del libro que no está en las tablas por peso, con las dosis calculadas para el peso elegido.
 export function TarjetaGeneral({ item, alergia = null }: { item: ItemGeneral; alergia?: string | null }) {
   return (
     <View style={styles.tarjeta}>
