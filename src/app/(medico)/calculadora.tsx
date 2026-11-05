@@ -273,6 +273,7 @@ const styles = StyleSheet.create({
   },
   numeroPeso: {
     fontSize: 54,
+    minWidth: 120,
     fontFamily: FUENTES.negrita,
     color: COLORES.blanco,
   },

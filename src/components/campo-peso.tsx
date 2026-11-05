@@ -37,7 +37,8 @@ export function CampoPeso({ valor, pesos, onCambiar, estilo }: Props) {
 
 const styles = StyleSheet.create({
   campo: {
-    padding: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 8,
     textAlign: 'center',
   },
 });
